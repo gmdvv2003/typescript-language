@@ -1,10 +1,14 @@
 import { Compiler } from "./source/compiler/Compiler";
+import { Debugger } from "./source/debugger/Debugger";
 import { Lexer } from "./source/lexer/Lexer";
 import { Parser } from "./source/parser/Parser";
 
 const source = `
 bloco
-	escreva("Olá, Mundo!")
+	declarar a = 5
+	declarar b = 10
+	declarar c = a + b
+	escreva(c)
 fim
 `;
 
