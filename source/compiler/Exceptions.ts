@@ -47,3 +47,9 @@ export class PropertyAccessOnNonObjectError extends Error {
 		super("Property access on non-object.");
 	}
 }
+
+export class ObjectNotIterableError extends Error {
+	constructor() {
+		super("Object not iterable.");
+	}
+}

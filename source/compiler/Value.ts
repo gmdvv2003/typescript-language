@@ -1,7 +1,18 @@
 import * as Nodes from "../parser/Nodes";
+import * as LinkedList from "../utilities/LinkedList";
 
 import * as Context from "./Context";
 import * as Exceptions from "./Exceptions";
+
+export interface IteratorResult {
+	index: BaseValue | null;
+	value: BaseValue | null;
+	done: boolean;
+}
+
+interface Iterable<T> {
+	__iterate__(): { next(self: T): IteratorResult };
+}
 
 export enum ValueType {
 	Number,
@@ -170,7 +181,9 @@ export class ObjectValue extends BaseValue {
 	 * @param value
 	 */
 	__newIndex__(symbol: string, value: any): void {
-		this.__properties__[symbol] = value;
+		if ("__newindex__" in this.__overrides__) {
+			this.__overrides__.__newindex__(symbol, value);
+		}
 	}
 }
 
@@ -205,7 +218,7 @@ export class StringObject extends ObjectValue {
 	}
 }
 
-export class ArrayObject extends ObjectValue {
+export class ArrayObject extends ObjectValue implements Iterable<ArrayObject> {
 	constructor(entries: BaseValue[]) {
 		const __overrides__: { [key: string]: (...any: any) => any } = {
 			__index__: (index: number) => this.__get__(index),
@@ -215,7 +228,7 @@ export class ArrayObject extends ObjectValue {
 		super(
 			ObjectType.Array,
 			{
-				// Campos do objeto
+				// Campos privados do objeto
 				__entries__: entries,
 
 				// Métodos do objeto
@@ -243,7 +256,28 @@ export class ArrayObject extends ObjectValue {
 	 * @param value
 	 */
 	private __set__(index: number, value: BaseValue): void {
-		this.__properties__.__entries__[index] = value;
+		if (value instanceof NullValue) {
+			// Remove a entrada
+			this.__properties__.__entries__.splice(index, 1);
+		} else {
+			// Adiciona a entrada
+			this.__properties__.__entries__[index] = value;
+		}
+	}
+
+	__iterate__(): { next(self: ArrayObject): IteratorResult } {
+		// Índice atual do iterador
+		let index = 0;
+
+		return {
+			next(self: ArrayObject): IteratorResult {
+				if (index < self.__properties__.__entries__.length) {
+					return { index: NUMBER(index), value: self.__properties__.__entries__[index++], done: false };
+				}
+
+				return { index: null, value: null, done: true };
+			},
+		};
 	}
 
 	toString(): string {
@@ -251,7 +285,7 @@ export class ArrayObject extends ObjectValue {
 	}
 }
 
-export class DictionaryObject extends ObjectValue {
+export class DictionaryObject extends ObjectValue implements Iterable<DictionaryObject> {
 	constructor(entries: { [key: string]: BaseValue }) {
 		const __overrides__: { [key: string]: (...any: any) => any } = {
 			__index__: (key: string) => this.__get__(key),
@@ -261,8 +295,18 @@ export class DictionaryObject extends ObjectValue {
 		super(
 			ObjectType.Dictionary,
 			{
-				// Campos do objeto
+				// Campos privados do objeto
 				__entries__: entries,
+
+				__keys__: (() => {
+					const list = new LinkedList.LinkedList<string>();
+
+					for (const key in entries) {
+						list.insert(key);
+					}
+
+					return list;
+				})(),
 
 				// Métodos do objeto
 				get: new BuiltInCodeObject((key: string) => this.__get__(key)),
@@ -289,13 +333,42 @@ export class DictionaryObject extends ObjectValue {
 	 * @param value
 	 */
 	private __set__(key: string, value: BaseValue): void {
-		this.__properties__.__entries__[key] = value;
+		if (value instanceof NullValue) {
+			// Delete a entrada e remove a chave da lista
+			delete this.__properties__.__entries__[key];
+			this.__properties__.__keys__.remove(key);
+		} else {
+			// Adiciona a entrada e a chave na lista
+			this.__properties__.__entries__[key] = value;
+			this.__properties__.__keys__.insert(key);
+		}
+	}
+
+	__iterate__(): { next(self: DictionaryObject): IteratorResult } {
+		let current = this.__properties__.__keys__.head;
+
+		return {
+			next(self: DictionaryObject): IteratorResult {
+				if (current) {
+					// Chave e valor do nó atual
+					const key = current.value;
+					const value = self.__properties__.__entries__[key];
+
+					// Move para o próximo nó
+					current = current.next;
+
+					return { index: STRING(key), value: value, done: false };
+				}
+
+				return { index: null, value: null, done: true };
+			},
+		};
 	}
 
 	toString(): string {
 		const entries = this.__properties__.__entries__;
-		return `{${Object.getOwnPropertySymbols(entries)
-			.map((symbol) => `[${symbol.toString()}] = ${entries[symbol]}`)
+		return `{${Object.keys(entries)
+			.map((key) => `["${key}"] = ${entries[key]}`)
 			.join(", ")}}`;
 	}
 }

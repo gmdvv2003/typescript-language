@@ -38,6 +38,7 @@ export enum NodeType {
 	BlockStmt = "BlockStmt",
 	WhileStmt = "WhileStmt",
 	NumericForStmt = "NumericForStmt",
+	IterativeForStmt = "IterativeForStmt",
 
 	FunctionDeclarationStmt = "FunctionDeclarationStmt",
 
@@ -57,6 +58,7 @@ export enum NodeType {
 	| NodeBlockStmt
 	| NodeWhileStmt
 	| NodeNumericForStmt
+	| NodeIterativeForStmt
 	| NodeFunctionDeclarationStmt
 	| NodeBreakStmt
 	| NodeContinueStmt
@@ -178,6 +180,17 @@ export class NodeNumericForStmt extends Node {
 		return `para ${this.initializer}${this.from ? ` de ${this.from}` : ""}${this.until ? ` até ${this.until}` : ""}${
 			this.step ? ` opere ${this.step}` : ""
 		} faça ${this.body.map((stmt): string => stmt.toString()).join("\n")}`;
+	}
+}
+
+export class NodeIterativeForStmt extends Node {
+	constructor(
+		public readonly key: string,
+		public readonly value: string,
+		public readonly iterable: NodeExprTypeUnion,
+		public readonly body: NodeStmtTypeUnion[]
+	) {
+		super(NodeType.IterativeForStmt);
 	}
 }
 

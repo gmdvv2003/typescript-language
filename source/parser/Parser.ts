@@ -147,7 +147,7 @@ class Parser {
 	 *
 	 * @returns
 	 */
-	private parseForStmt(): Nodes.NodeNumericForStmt {
+	private parseNumericForStmt(): Nodes.NodeNumericForStmt {
 		// Consome a palavra chave "para" e avança
 		this.consumeTokenAndAdvance(TokenType.For);
 
@@ -192,6 +192,41 @@ class Parser {
 		this.consumeTokenAndAdvance(TokenType.End);
 
 		return new Nodes.NodeNumericForStmt(initializer, from, until, step, body);
+	}
+
+	/**
+	 *
+	 */
+	private parseIterativeForStmt(): Nodes.NodeIterativeForStmt {
+		// Consome as palavra chaves "para", "cada" e avança
+		this.consumeTokenAndAdvance(TokenType.For);
+		this.consumeTokenAndAdvance(TokenType.Each);
+
+		let key = this.currentToken.word;
+		this.consumeTokenAndAdvance(TokenType.Identifier);
+
+		// Consome a virgula e avança
+		this.consumeTokenAndAdvance(TokenType.Comma);
+
+		let value = this.currentToken.word;
+		this.consumeTokenAndAdvance(TokenType.Identifier);
+
+		// Consome a palavra chave "em" e avança
+		this.consumeTokenAndAdvance(TokenType.In);
+
+		// Consome a expressão do iterável e avança
+		const iterable = this.parseLogicalExpr();
+
+		// Consome a palavra chave "faca" e avança
+		this.consumeTokenAndAdvance(TokenType.Do);
+
+		// Consome o corpo do laço e avança
+		const body = this.parseBody();
+
+		// Consome a palavra chave "fim" e avança
+		this.consumeTokenAndAdvance(TokenType.End);
+
+		return new Nodes.NodeIterativeForStmt(key, value, iterable, body);
 	}
 
 	/**
@@ -374,8 +409,15 @@ class Parser {
 		}
 
 		if (this.currentToken.type === TokenType.For) {
-			// Consome o laço e avança
-			return this.parseForStmt();
+			const currentTokenRecord = this.currentTokenIndex;
+
+			// Tentar consumir um laço numérico
+			/* prettier-ignore */ try { return this.parseIterativeForStmt(); } catch (_) { this.currentTokenIndex = currentTokenRecord; }
+
+			// Tentar consumir um laço iterativo
+			/* prettier-ignore */ try { return this.parseNumericForStmt(); } catch (_) { this.currentTokenIndex = currentTokenRecord; }
+
+			throw new Exceptions.StatementExpectedError(this.previousToken, this.currentToken);
 		}
 
 		if (this.currentToken.type === TokenType.Function) {

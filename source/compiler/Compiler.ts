@@ -434,6 +434,79 @@ class Compiler {
 	 *
 	 * @param statement
 	 */
+	private visitIterativeForStmt(statement: Nodes.NodeIterativeForStmt): void {
+		if (!Value.IS_OBJECT(this.visitLogicalExpr(statement.iterable))) {
+			throw new Exceptions.UnsupportedOperationError();
+		}
+
+		// Obtém o objeto iterável
+		const object = Value.AS_OBJECT(this.visitLogicalExpr(statement.iterable)) as unknown;
+
+		// Remapeia o objeto para um iterável
+		const iterable = object as { __iterate__: () => { next(self: any): Value.IteratorResult } };
+
+		// Verifica se o objeto é iterável
+		if (!("__iterate__" in iterable)) {
+			throw new Exceptions.ObjectNotIterableError();
+		}
+
+		// Entra no escopo de definição dos parâmetros do loop
+		this.enterScope();
+
+		// Define a variável de iteração
+		this.context.define(statement.key, Value.NULL());
+		this.context.define(statement.value, Value.NULL());
+
+		const iterator = iterable.__iterate__();
+
+		while (true) {
+			// Retorna o próximo valor do iterável
+			const { index, value, done } = iterator.next(iterable);
+
+			if (done) {
+				break;
+			}
+
+			// Entra no escopo do loop e então empilha o contexto do loop
+			this.enterScope();
+			this.context.pushLoopContext();
+
+			this.context.assign(statement.key, index!);
+			this.context.assign(statement.value, value!);
+
+			for (const childStatement of statement.body) {
+				// Executa o corpo do loop
+				this.visitStmt(childStatement);
+
+				// Pega o contexto do loop atual e então verifica se deve parar ou continuar
+				const loopContext = this.context.getLoopContext();
+
+				if (loopContext.break) {
+					break;
+				}
+
+				if (loopContext.continue) {
+					break;
+				}
+			}
+
+			// Sai do escopo do loop
+			this.leaveScope();
+
+			// Remove o contexto do loop e verifica se deve parar
+			const removedLoopContext = this.context.popLoopContext();
+			if (removedLoopContext.break) {
+				break;
+			}
+		}
+
+		this.leaveScope();
+	}
+
+	/**
+	 *
+	 * @param statement
+	 */
 	private visitFunctionDeclarationStmt(statement: Nodes.NodeFunctionDeclarationStmt): void {
 		this.context.define(statement.name, new Value.CodeObject(statement.name, statement.parameters, statement.body, this.context));
 	}
@@ -496,6 +569,10 @@ class Compiler {
 
 			case Nodes.NodeType.NumericForStmt:
 				this.visitNumericForStmt(statement as Nodes.NodeNumericForStmt);
+				break;
+
+			case Nodes.NodeType.IterativeForStmt:
+				this.visitIterativeForStmt(statement as Nodes.NodeIterativeForStmt);
 				break;
 
 			case Nodes.NodeType.FunctionDeclarationStmt:

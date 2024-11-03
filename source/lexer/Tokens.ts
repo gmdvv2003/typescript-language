@@ -24,6 +24,9 @@ export enum TokenType {
 	From = "de", 					// de
 	Until = "ate", 					// até
 	Operate = "opere", 			 	// opere
+	
+	Each = "cada", 					// cada
+	In = "em", 						// em
 
 	// Operadores Unários
 	Not = "negar", 					// negar
@@ -94,6 +97,9 @@ export const KEYWORDS: { [key: string]: TokenType } = {
 	[TokenType.Until.toString()]: TokenType.Until,
 	[TokenType.Operate.toString()]: TokenType.Operate,
 
+	[TokenType.Each.toString()]: TokenType.Each,
+	[TokenType.In.toString()]: TokenType.In,
+	
 	[TokenType.Not.toString()]: TokenType.Not,
 
 	[TokenType.Null.toString()]: TokenType.Null,
