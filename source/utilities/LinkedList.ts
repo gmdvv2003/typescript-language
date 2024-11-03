@@ -9,8 +9,8 @@ export class LinkedListNode<T> {
 }
 
 export class LinkedList<T> {
-	head: LinkedListNode<T> | null | undefined = null;
-	tail: LinkedListNode<T> | null | undefined = null;
+	head: LinkedListNode<T> | null = null;
+	tail: LinkedListNode<T> | null = null;
 
 	/**
 	 *

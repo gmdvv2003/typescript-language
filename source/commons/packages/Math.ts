@@ -1,5 +1,5 @@
 import { Context } from "../../compiler/Context";
-import { BaseValue, NUMBER, NumberValue } from "../../compiler/Value";
+import { NUMBER, NumberValue } from "../../compiler/Value";
 
 class __Math {
 	static PI = NUMBER(3.14159265358979323846);

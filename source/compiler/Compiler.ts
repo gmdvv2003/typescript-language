@@ -43,13 +43,6 @@ class Compiler {
 	/**
 	 *
 	 */
-	private leaveClosure(): void {
-		this.context = this.context.parentContext!;
-	}
-
-	/**
-	 *
-	 */
 	private enterScope(): void {
 		this.context.scopeLevel += 1;
 	}
@@ -250,7 +243,7 @@ class Compiler {
 		if (statement.target instanceof Nodes.NodeIdentifier) {
 			this.context.assign((statement.target as Nodes.NodeIdentifier).name, this.visitLogicalExpr(statement.value));
 		} else {
-			// Obtém a instaância do objeto
+			// Obtém a instância do objeto
 			const object = this.visitLogicalExpr((statement.target as Nodes.NodeObjectPropertyAccessor).callee!);
 
 			// Obtém o símbolo e o valor
@@ -344,50 +337,28 @@ class Compiler {
 		// Enquanto a condição for verdadeira, executa o corpo do loop
 		while (true) {
 			if (statement.until !== undefined) {
-				// Caso a condição de parada seja definida, verifica se ela foi atingida
-				let proceed = false;
+				let value;
 
-				switch (statement.until.type) {
-					// Caso a condição de parada seja um número literal, verifica se a variável é menor que o número
-					case Nodes.NodeType.NumberLiteral:
-						proceed = Value.AS_BOOLEAN(
-							BINARY_OP_LE(
-								this.context.get((statement.initializer as Nodes.NodeIdentifier).name)!.value,
-								Value.NUMBER((statement.until as Nodes.NodeNumberLiteral).value)
-							)
-						);
+				// Índice se o loop deve continuar
+				let keepGoing = false;
+
+				switch ((value = this.visitLogicalExpr(statement.until)).valueType) {
+					// Caso o valor seja um número, verifica se o valor da variável é menor que o valor do loop
+					case Value.ValueType.Number:
+						keepGoing = (BINARY_OP_LT(this.context.get((statement.initializer as Nodes.NodeIdentifier).name)!.value, value) as Value.BooleanValue)
+							.value;
 						break;
 
-					// Caso a condição de parada seja um identificador, verifica se a variável é menor que o valor do identificador
-					case Nodes.NodeType.Identifier:
-						proceed = Value.AS_BOOLEAN(
-							BINARY_OP_LE(
-								this.context.get((statement.initializer as Nodes.NodeIdentifier).name)!.value,
-								this.context.get((statement.until as Nodes.NodeIdentifier).name)!.value
-							)
-						);
-						break;
-
-					// Caso a condição de parada seja uma expressão, verifica se a variável é menor que o valor da expressão
-					case Nodes.NodeType.BinaryExprAdd:
-					case Nodes.NodeType.BinaryExprSub:
-					case Nodes.NodeType.BinaryExprMul:
-					case Nodes.NodeType.BinaryExprDiv:
-					case Nodes.NodeType.BinaryExprMod:
-						proceed = Value.AS_BOOLEAN(
-							BINARY_OP_LE(
-								this.context.get((statement.initializer as Nodes.NodeIdentifier).name)!.value,
-								this.visitExpr(statement.until as Nodes.NodeExprTypeUnion)
-							)
-						);
+					// Caso o valor seja um booleano, verifica se o valor é falso
+					case Value.ValueType.Boolean:
+						keepGoing = !(value as Value.BooleanValue).value;
 						break;
 
 					default:
-						proceed = Value.AS_BOOLEAN(this.visitLogicalExpr(statement.until));
 						break;
 				}
 
-				if (!proceed) {
+				if (!keepGoing) {
 					break;
 				}
 			}
@@ -676,7 +647,7 @@ class Compiler {
 	 * @param node
 	 */
 	private __visitObjectFunctionAccessor(node: Nodes.NodeObjectFunctionAccessor): Value.BaseValue {
-		let code: Value.CodeObject | Value.BuiltInCodeObject | undefined;
+		let code: Value.CodeObject | Value.BuiltInCodeObject | null;
 
 		if (node.callee instanceof Nodes.NodeIdentifier) {
 			code = this.context.get((node.callee as Nodes.NodeIdentifier).name)?.value as Value.CodeObject | Value.BuiltInCodeObject;

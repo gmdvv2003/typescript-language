@@ -524,7 +524,7 @@ class Parser {
 
 		while (true) {
 			// Lista de acessores do valor proveniente do identificador
-			let accessor: Nodes.NodeObjectAccessorTypeUnion | undefined = undefined;
+			let accessor: Nodes.NodeObjectAccessorTypeUnion | null = null;
 
 			// Salva o índice atual do token para caso seja necessário retornar
 			const currentTokenIndexRecord = this.currentTokenIndex;

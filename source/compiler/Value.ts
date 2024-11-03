@@ -232,10 +232,13 @@ export class ArrayObject extends ObjectValue implements Iterable<ArrayObject> {
 				__entries__: entries,
 
 				// Métodos do objeto
-				get: new BuiltInCodeObject((index: number) => this.__get__(index)),
-				set: new BuiltInCodeObject((index: number, value: BaseValue) => this.__set__(index, value)),
+				pega: new BuiltInCodeObject((index: number) => this.__get__(index)),
+				seta: new BuiltInCodeObject((index: number, value: BaseValue) => this.__set__(index, value)),
 
-				length: new BuiltInCodeObject(() => this.__properties__.__entries__.length),
+				adiciona: new BuiltInCodeObject((value: BaseValue) => this.__properties__.__entries__.push(value)),
+				remove: new BuiltInCodeObject((index: number) => this.__properties__.__entries__.splice(index, 1)),
+
+				tamanho: new BuiltInCodeObject(() => NUMBER(this.__properties__.__entries__.length)),
 			},
 			__overrides__
 		);
@@ -309,10 +312,10 @@ export class DictionaryObject extends ObjectValue implements Iterable<Dictionary
 				})(),
 
 				// Métodos do objeto
-				get: new BuiltInCodeObject((key: string) => this.__get__(key)),
-				set: new BuiltInCodeObject((key: string, value: BaseValue) => this.__set__(key, value)),
+				pega: new BuiltInCodeObject((key: string) => this.__get__(key)),
+				seta: new BuiltInCodeObject((key: string, value: BaseValue) => this.__set__(key, value)),
 
-				length: new BuiltInCodeObject(() => Object.keys(this.__properties__.__entries__).length),
+				tamanho: new BuiltInCodeObject(() => NUMBER(Object.keys(this.__properties__.__entries__).length)),
 			},
 			__overrides__
 		);
