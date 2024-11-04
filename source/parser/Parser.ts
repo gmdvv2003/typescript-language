@@ -12,21 +12,21 @@ class Parser {
 	/**
 	 * Token atual
 	 */
-	private get currentToken(): Token {
+	public get currentToken(): Token {
 		return this.tokens[this.currentTokenIndex];
 	}
 
 	/**
 	 * Próximo token
 	 */
-	private get nextToken(): Token {
+	public get nextToken(): Token {
 		return this.getTokenFromOffset(1);
 	}
 
 	/**
 	 * Token anterior
 	 */
-	private get previousToken(): Token {
+	public get previousToken(): Token {
 		return this.getTokenFromOffset(-1);
 	}
 
@@ -35,7 +35,7 @@ class Parser {
 	 * @param offset
 	 * @returns
 	 */
-	private getTokenFromOffset(offset: number = 0): Token {
+	public getTokenFromOffset(offset: number = 0): Token {
 		if (this.currentTokenIndex + offset < 0 || this.currentTokenIndex + offset >= this.tokens.length) {
 			throw new Exceptions.TokenIndexOutOfBoundsError(this.currentTokenIndex + offset);
 		}
@@ -48,7 +48,7 @@ class Parser {
 	 * @param expectedTokenType
 	 * @returns
 	 */
-	private consumeTokenAndAdvance(expectedTokenType: TokenType | null = null): Token {
+	public consumeTokenAndAdvance(expectedTokenType: TokenType | null = null): Token {
 		if (expectedTokenType != null && this.currentToken.type != expectedTokenType) {
 			throw new Exceptions.UnexpectedTokenError(expectedTokenType, this.currentToken);
 		}
@@ -72,6 +72,294 @@ class Parser {
 		}
 
 		return nodes;
+	}
+
+	/**
+	 *
+	 * @returns
+	 */
+	private __parseArrayLiteral(): Nodes.NodeArrayLiteral {
+		// Consome o colchetes de abertura
+		this.consumeTokenAndAdvance(TokenType.LeftBrackets);
+
+		let entries: Nodes.NodeExprTypeUnion[] = [];
+
+		while (this.currentToken.type !== TokenType.RightBrackets) {
+			entries.push(this.parseLogicalExpr());
+
+			// Consome a vírgula caso exista
+			if (this.currentToken.type === (TokenType.Comma as TokenType)) {
+				this.consumeTokenAndAdvance(TokenType.Comma);
+			}
+		}
+
+		// Consome o colchetes de fechamento
+		this.consumeTokenAndAdvance(TokenType.RightBrackets);
+
+		// Retorna um nó de array
+		return new Nodes.NodeArrayLiteral(entries);
+	}
+
+	/**
+	 *
+	 * @returns
+	 */
+	private __parseDictionaryLiteral(): Nodes.NodeDictionaryLiteral {
+		// Consome o chaves de abertura
+		this.consumeTokenAndAdvance(TokenType.LeftBraces);
+
+		let entries: { [key: string]: Nodes.NodeExprTypeUnion } = {};
+
+		while (this.currentToken.type !== TokenType.RightBraces) {
+			// Consome as chaves de abertura do par chave-valor
+			this.consumeTokenAndAdvance(TokenType.LeftBrackets);
+
+			// Consome a chave do par chave-valor
+			const key = this.parseLogicalExpr();
+
+			// Consome as chaves de fechamento do par chave-valor
+			this.consumeTokenAndAdvance(TokenType.RightBrackets);
+
+			// Consome o igual do par chave-valor
+			this.consumeTokenAndAdvance(TokenType.Equal);
+
+			// Consome o valor do par chave-valor
+			const value = this.parseLogicalExpr();
+
+			// Adiciona o par chave-valor ao objeto
+			entries[key.toString()] = value;
+
+			// Consome a vírgula caso exista
+			if (this.currentToken.type === (TokenType.Comma as TokenType)) {
+				this.consumeTokenAndAdvance(TokenType.Comma);
+			}
+		}
+
+		// Consome o chaves de fechamento
+		this.consumeTokenAndAdvance(TokenType.RightBraces);
+
+		// Retorna um nó de objeto
+		return new Nodes.NodeDictionaryLiteral(entries);
+	}
+
+	/**
+	 *
+	 * @returns
+	 */
+	private parseFactor(): Nodes.NodeFactorTypeUnion | Nodes.NodeExprTypeUnion {
+		const currentToken = this.currentToken;
+
+		switch (currentToken.type) {
+			case TokenType.Not:
+			case TokenType.Minus:
+				// Consome o operador e avança
+				this.consumeTokenAndAdvance(currentToken.type === TokenType.Not ? TokenType.Not : TokenType.Minus);
+				return new Nodes.NodeUnaryNot(this.parseFactor());
+
+			case TokenType.Null:
+				this.consumeTokenAndAdvance(TokenType.Null);
+				return new Nodes.NodeNullLiteral();
+
+			// Consome um identificador e cria um nó
+			case TokenType.Identifier:
+				// Casos especiais para acessores de função e propriedade
+				try {
+					const node = this.parsePropertyAccessor();
+					if (node) {
+						if (node instanceof Nodes.NodeObjectPropertyAccessor && node.key.type === Nodes.NodeType.Identifier && node.callee === undefined) {
+							return new Nodes.NodeIdentifier((node.key as Nodes.NodeIdentifier).name);
+						}
+
+						return node;
+					}
+				} catch (_) {}
+
+				// Caso falhe em consumir uma chamada de função, consome um identificador
+				this.consumeTokenAndAdvance(TokenType.Identifier);
+				return new Nodes.NodeIdentifier(currentToken.word);
+
+			// Consome um número e cria um nó
+			case TokenType.Number:
+				this.consumeTokenAndAdvance(TokenType.Number);
+				return new Nodes.NodeNumberLiteral(Number(currentToken.word));
+
+			// Consome uma string e cria um nó
+			case TokenType.Word:
+				this.consumeTokenAndAdvance(TokenType.Word);
+				return new Nodes.NodeStringLiteral(currentToken.word);
+
+			// Consome um booleano e cria um nó
+			case TokenType.True:
+			case TokenType.False:
+				this.consumeTokenAndAdvance(currentToken.type);
+				return new Nodes.NodeBooleanLiteral(currentToken.type === TokenType.True);
+
+			default:
+				// Caso seja um parênteses, consome a expressão dentro dele
+				if (currentToken.type === TokenType.LeftParentheses) {
+					// Consome o parênteses de abertura
+					this.consumeTokenAndAdvance(TokenType.LeftParentheses);
+
+					// Consome a expressão esperada
+					const node = this.parseLogicalExpr();
+
+					// Consome o parênteses de fechamento
+					this.consumeTokenAndAdvance(TokenType.RightParentheses);
+
+					return node;
+				}
+
+				// Caso seja colchetes, consome o array
+				if (currentToken.type === TokenType.LeftBrackets) {
+					return this.__parseArrayLiteral();
+				}
+
+				// Caso seja chaves, consome o objeto
+				if (currentToken.type === TokenType.LeftBraces) {
+					return this.__parseDictionaryLiteral();
+				}
+
+				throw new Exceptions.ExpressionExpectedError(this.previousToken, currentToken);
+		}
+	}
+
+	/**
+	 *
+	 * @returns
+	 */
+	private parseTerm(): Nodes.NodeTermTypeUnion {
+		let node = this.parseFactor();
+
+		while (this.currentToken.type === TokenType.Multiply || this.currentToken.type === TokenType.Divide || this.currentToken.type === TokenType.Modulus) {
+			const currentToken = this.currentToken;
+
+			// Consome o operador e avança
+			this.consumeTokenAndAdvance(currentToken.type);
+
+			// Identifica o operador e cria um nó correspondente
+			switch (currentToken.type) {
+				case TokenType.Multiply:
+					node = new Nodes.NodeBinaryExprMul(node, this.parseFactor());
+					break;
+
+				case TokenType.Divide:
+					node = new Nodes.NodeBinaryExprDiv(node, this.parseFactor());
+					break;
+
+				case TokenType.Modulus:
+					node = new Nodes.NodeBinaryExprMod(node, this.parseFactor());
+					break;
+			}
+		}
+
+		return node;
+	}
+
+	/**
+	 *
+	 * @returns
+	 */
+	private parseExpr(): Nodes.NodeExprTypeUnion {
+		let node = this.parseTerm();
+
+		while (this.currentToken.type === TokenType.Plus || this.currentToken.type === TokenType.Minus) {
+			const currentToken = this.currentToken;
+
+			// Consome o operador e avança
+			this.consumeTokenAndAdvance(currentToken.type);
+
+			// Identifica o operador e cria um nó correspondente
+			switch (currentToken.type) {
+				case TokenType.Plus:
+					node = new Nodes.NodeBinaryExprAdd(node, this.parseTerm());
+					break;
+
+				case TokenType.Minus:
+					node = new Nodes.NodeBinaryExprSub(node, this.parseTerm());
+					break;
+			}
+		}
+
+		return node;
+	}
+
+	/**
+	 *
+	 * @returns
+	 */
+	private parseConditionalExpr(): Nodes.NodeConditionalExprTypeUnion {
+		let node = this.parseExpr();
+
+		while (
+			this.currentToken.type === TokenType.EqualTo ||
+			this.currentToken.type === TokenType.NotEqualTo ||
+			this.currentToken.type === TokenType.GreaterThan ||
+			this.currentToken.type === TokenType.GreaterThanOrEqualTo ||
+			this.currentToken.type === TokenType.LessThan ||
+			this.currentToken.type === TokenType.LessThanOrEqualTo
+		) {
+			const currentToken = this.currentToken;
+
+			// Consome o operador e avança
+			this.consumeTokenAndAdvance(currentToken.type);
+
+			// Identifica o operador e cria um nó correspondente
+			switch (currentToken.type) {
+				case TokenType.EqualTo:
+					node = new Nodes.NodeBinaryExprEqualTo(node, this.parseExpr());
+					break;
+
+				case TokenType.NotEqualTo:
+					node = new Nodes.NodeBinaryExprNotEqualTo(node, this.parseExpr());
+					break;
+
+				case TokenType.GreaterThan:
+					node = new Nodes.NodeBinaryExprGreaterThan(node, this.parseExpr());
+					break;
+
+				case TokenType.GreaterThanOrEqualTo:
+					node = new Nodes.NodeBinaryExprGreaterEqualTo(node, this.parseExpr());
+					break;
+
+				case TokenType.LessThan:
+					node = new Nodes.NodeBinaryExprLessThan(node, this.parseExpr());
+					break;
+
+				case TokenType.LessThanOrEqualTo:
+					node = new Nodes.NodeBinaryExprLessEqualTo(node, this.parseExpr());
+					break;
+			}
+		}
+
+		return node;
+	}
+
+	/**
+	 *
+	 * @returns
+	 */
+	private parseLogicalExpr(): Nodes.NodeLogicalExprTypeUnion {
+		let node = this.parseConditionalExpr();
+
+		while (this.currentToken.type === TokenType.Or || this.currentToken.type === TokenType.And) {
+			const currentToken = this.currentToken;
+
+			// Consome o operador e avança
+			this.consumeTokenAndAdvance(currentToken.type);
+
+			// Identifica o operador e cria um nó correspondente
+			switch (currentToken.type) {
+				case TokenType.Or:
+					node = new Nodes.NodeBinaryExprOr(node, this.parseConditionalExpr());
+					break;
+
+				case TokenType.And:
+					node = new Nodes.NodeBinaryExprAnd(node, this.parseConditionalExpr());
+					break;
+			}
+		}
+
+		return node;
 	}
 
 	/**
@@ -547,294 +835,6 @@ class Parser {
 			accessor.callee = callee;
 			return accessor;
 		}, new Nodes.NodeObjectPropertyAccessor(new Nodes.NodeIdentifier(name)));
-	}
-
-	/**
-	 *
-	 * @returns
-	 */
-	private parseLogicalExpr(): Nodes.NodeLogicalExprTypeUnion {
-		let node = this.parseConditionalExpr();
-
-		while (this.currentToken.type === TokenType.Or || this.currentToken.type === TokenType.And) {
-			const currentToken = this.currentToken;
-
-			// Consome o operador e avança
-			this.consumeTokenAndAdvance(currentToken.type);
-
-			// Identifica o operador e cria um nó correspondente
-			switch (currentToken.type) {
-				case TokenType.Or:
-					node = new Nodes.NodeBinaryExprOr(node, this.parseConditionalExpr());
-					break;
-
-				case TokenType.And:
-					node = new Nodes.NodeBinaryExprAnd(node, this.parseConditionalExpr());
-					break;
-			}
-		}
-
-		return node;
-	}
-
-	/**
-	 *
-	 * @returns
-	 */
-	private parseConditionalExpr(): Nodes.NodeConditionalExprTypeUnion {
-		let node = this.parseExpr();
-
-		while (
-			this.currentToken.type === TokenType.EqualTo ||
-			this.currentToken.type === TokenType.NotEqualTo ||
-			this.currentToken.type === TokenType.GreaterThan ||
-			this.currentToken.type === TokenType.GreaterThanOrEqualTo ||
-			this.currentToken.type === TokenType.LessThan ||
-			this.currentToken.type === TokenType.LessThanOrEqualTo
-		) {
-			const currentToken = this.currentToken;
-
-			// Consome o operador e avança
-			this.consumeTokenAndAdvance(currentToken.type);
-
-			// Identifica o operador e cria um nó correspondente
-			switch (currentToken.type) {
-				case TokenType.EqualTo:
-					node = new Nodes.NodeBinaryExprEqualTo(node, this.parseExpr());
-					break;
-
-				case TokenType.NotEqualTo:
-					node = new Nodes.NodeBinaryExprNotEqualTo(node, this.parseExpr());
-					break;
-
-				case TokenType.GreaterThan:
-					node = new Nodes.NodeBinaryExprGreaterThan(node, this.parseExpr());
-					break;
-
-				case TokenType.GreaterThanOrEqualTo:
-					node = new Nodes.NodeBinaryExprGreaterEqualTo(node, this.parseExpr());
-					break;
-
-				case TokenType.LessThan:
-					node = new Nodes.NodeBinaryExprLessThan(node, this.parseExpr());
-					break;
-
-				case TokenType.LessThanOrEqualTo:
-					node = new Nodes.NodeBinaryExprLessEqualTo(node, this.parseExpr());
-					break;
-			}
-		}
-
-		return node;
-	}
-
-	/**
-	 *
-	 * @returns
-	 */
-	private parseExpr(): Nodes.NodeExprTypeUnion {
-		let node = this.parseTerm();
-
-		while (this.currentToken.type === TokenType.Plus || this.currentToken.type === TokenType.Minus) {
-			const currentToken = this.currentToken;
-
-			// Consome o operador e avança
-			this.consumeTokenAndAdvance(currentToken.type);
-
-			// Identifica o operador e cria um nó correspondente
-			switch (currentToken.type) {
-				case TokenType.Plus:
-					node = new Nodes.NodeBinaryExprAdd(node, this.parseTerm());
-					break;
-
-				case TokenType.Minus:
-					node = new Nodes.NodeBinaryExprSub(node, this.parseTerm());
-					break;
-			}
-		}
-
-		return node;
-	}
-
-	/**
-	 *
-	 * @returns
-	 */
-	private parseTerm(): Nodes.NodeTermTypeUnion {
-		let node = this.parseFactor();
-
-		while (this.currentToken.type === TokenType.Multiply || this.currentToken.type === TokenType.Divide || this.currentToken.type === TokenType.Modulus) {
-			const currentToken = this.currentToken;
-
-			// Consome o operador e avança
-			this.consumeTokenAndAdvance(currentToken.type);
-
-			// Identifica o operador e cria um nó correspondente
-			switch (currentToken.type) {
-				case TokenType.Multiply:
-					node = new Nodes.NodeBinaryExprMul(node, this.parseFactor());
-					break;
-
-				case TokenType.Divide:
-					node = new Nodes.NodeBinaryExprDiv(node, this.parseFactor());
-					break;
-
-				case TokenType.Modulus:
-					node = new Nodes.NodeBinaryExprMod(node, this.parseFactor());
-					break;
-			}
-		}
-
-		return node;
-	}
-
-	/**
-	 *
-	 * @returns
-	 */
-	private __parseArrayLiteral(): Nodes.NodeArrayLiteral {
-		// Consome o colchetes de abertura
-		this.consumeTokenAndAdvance(TokenType.LeftBrackets);
-
-		let entries: Nodes.NodeExprTypeUnion[] = [];
-
-		while (this.currentToken.type !== TokenType.RightBrackets) {
-			entries.push(this.parseLogicalExpr());
-
-			// Consome a vírgula caso exista
-			if (this.currentToken.type === (TokenType.Comma as TokenType)) {
-				this.consumeTokenAndAdvance(TokenType.Comma);
-			}
-		}
-
-		// Consome o colchetes de fechamento
-		this.consumeTokenAndAdvance(TokenType.RightBrackets);
-
-		// Retorna um nó de array
-		return new Nodes.NodeArrayLiteral(entries);
-	}
-
-	/**
-	 *
-	 * @returns
-	 */
-	private __parseDictionaryLiteral(): Nodes.NodeDictionaryLiteral {
-		// Consome o chaves de abertura
-		this.consumeTokenAndAdvance(TokenType.LeftBraces);
-
-		let entries: { [key: string]: Nodes.NodeExprTypeUnion } = {};
-
-		while (this.currentToken.type !== TokenType.RightBraces) {
-			// Consome as chaves de abertura do par chave-valor
-			this.consumeTokenAndAdvance(TokenType.LeftBrackets);
-
-			// Consome a chave do par chave-valor
-			const key = this.parseLogicalExpr();
-
-			// Consome as chaves de fechamento do par chave-valor
-			this.consumeTokenAndAdvance(TokenType.RightBrackets);
-
-			// Consome o igual do par chave-valor
-			this.consumeTokenAndAdvance(TokenType.Equal);
-
-			// Consome o valor do par chave-valor
-			const value = this.parseLogicalExpr();
-
-			// Adiciona o par chave-valor ao objeto
-			entries[key.toString()] = value;
-
-			// Consome a vírgula caso exista
-			if (this.currentToken.type === (TokenType.Comma as TokenType)) {
-				this.consumeTokenAndAdvance(TokenType.Comma);
-			}
-		}
-
-		// Consome o chaves de fechamento
-		this.consumeTokenAndAdvance(TokenType.RightBraces);
-
-		// Retorna um nó de objeto
-		return new Nodes.NodeDictionaryLiteral(entries);
-	}
-
-	/**
-	 *
-	 * @returns
-	 */
-	private parseFactor(): Nodes.NodeFactorTypeUnion | Nodes.NodeExprTypeUnion {
-		const currentToken = this.currentToken;
-
-		switch (currentToken.type) {
-			case TokenType.Not:
-			case TokenType.Minus:
-				// Consome o operador e avança
-				this.consumeTokenAndAdvance(currentToken.type === TokenType.Not ? TokenType.Not : TokenType.Minus);
-				return new Nodes.NodeUnaryNot(this.parseFactor());
-
-			case TokenType.Null:
-				this.consumeTokenAndAdvance(TokenType.Null);
-				return new Nodes.NodeNullLiteral();
-
-			// Consome um identificador e cria um nó
-			case TokenType.Identifier:
-				// Casos especiais para acessores de função e propriedade
-				try {
-					const node = this.parsePropertyAccessor();
-					if (node) {
-						if (node instanceof Nodes.NodeObjectPropertyAccessor && node.key.type === Nodes.NodeType.Identifier && node.callee === undefined) {
-							return new Nodes.NodeIdentifier((node.key as Nodes.NodeIdentifier).name);
-						}
-
-						return node;
-					}
-				} catch (_) {}
-
-				// Caso falhe em consumir uma chamada de função, consome um identificador
-				this.consumeTokenAndAdvance(TokenType.Identifier);
-				return new Nodes.NodeIdentifier(currentToken.word);
-
-			// Consome um número e cria um nó
-			case TokenType.Number:
-				this.consumeTokenAndAdvance(TokenType.Number);
-				return new Nodes.NodeNumberLiteral(Number(currentToken.word));
-
-			// Consome uma string e cria um nó
-			case TokenType.Word:
-				this.consumeTokenAndAdvance(TokenType.Word);
-				return new Nodes.NodeStringLiteral(currentToken.word);
-
-			// Consome um booleano e cria um nó
-			case TokenType.True:
-			case TokenType.False:
-				this.consumeTokenAndAdvance(currentToken.type);
-				return new Nodes.NodeBooleanLiteral(currentToken.type === TokenType.True);
-
-			default:
-				// Caso seja um parênteses, consome a expressão dentro dele
-				if (currentToken.type === TokenType.LeftParentheses) {
-					// Consome o parênteses de abertura
-					this.consumeTokenAndAdvance(TokenType.LeftParentheses);
-
-					// Consome a expressão esperada
-					const node = this.parseLogicalExpr();
-
-					// Consome o parênteses de fechamento
-					this.consumeTokenAndAdvance(TokenType.RightParentheses);
-
-					return node;
-				}
-
-				// Caso seja colchetes, consome o array
-				if (currentToken.type === TokenType.LeftBrackets) {
-					return this.__parseArrayLiteral();
-				}
-
-				// Caso seja chaves, consome o objeto
-				if (currentToken.type === TokenType.LeftBraces) {
-					return this.__parseDictionaryLiteral();
-				}
-
-				throw new Exceptions.ExpressionExpectedError(this.previousToken, currentToken);
-		}
 	}
 
 	/**

@@ -5,10 +5,26 @@ import { Parser } from "./source/parser/Parser";
 
 const source = `
 bloco
-	declarar a = 5
-	declarar b = 10
-	declarar c = a + b
-	escreva(c)
+	declarar memo = {}
+
+	funcao fibonacci(n)
+		se memo[n] faca
+			retorna memo[n]
+		fim
+
+		se n == 0 faca
+			retorna 0
+		fim
+
+		caso n == 1 faca
+			retorna 1
+		fim
+
+		memo[n] = fibonacci(n - 1) + fibonacci(n - 2)
+		retorna memo[n]
+	fim
+
+	escreva(fibonacci(600))
 fim
 `;
 
@@ -20,7 +36,7 @@ try {
 	const program = parser.parse();
 
 	const compiler = new Compiler(program);
-	compiler.execute();
+	new Debugger(compiler);
 } catch (exception) {
 	console.error((<Error>exception).message);
 }

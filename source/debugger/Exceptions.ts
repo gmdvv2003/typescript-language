@@ -1,11 +1,11 @@
 export class ProgramExit extends Error {
 	constructor() {
-		super("Programa finalizado pelo usuário.");
+		super("Program ended by user.");
 	}
 }
 
 export class ProgramFinished extends Error {
 	constructor() {
-		super("Programa finalizado.");
+		super("Program finished.");
 	}
 }

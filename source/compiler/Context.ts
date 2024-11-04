@@ -27,7 +27,7 @@ export class Context {
 	public locals: Local[] = [];
 
 	// Nível do escopo atual
-	public scopeLevel: number = 0;
+	public scopeLevel: number = -1;
 
 	constructor(public readonly parentContext: Context | null, builtIns: { [key: string]: (...any: any[]) => any } = {}) {
 		for (const [key, value] of Object.entries(builtIns)) {
@@ -38,6 +38,9 @@ export class Context {
 				this.define(key, new Value.BuiltInCodeObject(value));
 			}
 		}
+
+		// Caso exista um contexto pai, o nível do escopo é incrementado
+		this.scopeLevel = 0;
 	}
 
 	/**
@@ -45,13 +48,16 @@ export class Context {
 	 * @param name
 	 * @param value
 	 */
-	public define(name: string, value: Value.BaseValue): void {
+	public define(name: string, value: Value.BaseValue): Value.BaseValue {
 		const local = this.get(name);
 		if (local !== undefined && local.scopeLevel === this.scopeLevel) {
 			throw new Exceptions.VariableAlreadyDefinedError(name);
 		}
 
 		this.locals.push(new Local(name, this.scopeLevel, value));
+
+		// Somente para fins de depuração
+		return value;
 	}
 
 	/**
@@ -59,13 +65,16 @@ export class Context {
 	 * @param name
 	 * @param value
 	 */
-	public assign(name: string, value: Value.BaseValue): void {
+	public assign(name: string, value: Value.BaseValue): Value.BaseValue {
 		const local = this.get(name);
 		if (!local) {
 			throw new Exceptions.VariableNotDefinedError(name);
 		}
 
 		local.value = value;
+
+		// Somente para fins de depuração
+		return value;
 	}
 
 	/**

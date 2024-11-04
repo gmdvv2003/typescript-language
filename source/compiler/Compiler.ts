@@ -1,11 +1,11 @@
 import * as Nodes from "../parser/Nodes";
+import * as Debugger from "../debugger/Debugger";
 
 import * as Exceptions from "./Exceptions";
 import * as Value from "./Value";
 import * as Context from "./Context";
 
 import { BuiltIns } from "../commons/BuiltIns";
-import { Debugger } from "../debugger/Debugger";
 
 /* prettier-ignore */ function* BINARY_OP_OR(left: Value.BaseValue, right: Value.BaseValue): Generator<Value.BaseValue> { return Value.BOOLEAN(Value.AS_BOOLEAN(left) || Value.AS_BOOLEAN(right)); }
 /* prettier-ignore */ function* BINARY_OP_AND(left: Value.BaseValue, right: Value.BaseValue): Generator<Value.BaseValue> { return Value.BOOLEAN(Value.AS_BOOLEAN(left) && Value.AS_BOOLEAN(right)); }
@@ -27,7 +27,7 @@ import { Debugger } from "../debugger/Debugger";
 
 class Compiler {
 	// Depurador
-	private __debugger: Debugger | null = null;
+	public __debugger: Debugger.Debugger | null = null;
 
 	// Contexto contendo informações sobre o código em execução
 	public context!: Context.Context;
@@ -67,29 +67,82 @@ class Compiler {
 		this.context.scopeLevel -= 1;
 	}
 
-	/* prettier-ignore */ private *visitBinaryExprOr(node: Nodes.NodeBinaryExprOr): Generator<void | Value.BaseValue> { return yield* BINARY_OP_OR(yield* this.visitLogicalExpr(node.left), yield* this.visitLogicalExpr(node.right)); }
-	/* prettier-ignore */ private *visitBinaryExprAnd(node: Nodes.NodeBinaryExprAnd): Generator<void | Value.BaseValue> { return yield* BINARY_OP_AND(yield* this.visitLogicalExpr(node.left), yield* this.visitLogicalExpr(node.right)); }
+	@Debugger.capture<Nodes.NodeBinaryExprOr>()
+	private *visitBinaryExprOr(node: Nodes.NodeBinaryExprOr): Generator<void | Value.BaseValue> {
+		return yield* BINARY_OP_OR(yield* this.visitLogicalExpr(node.left), yield* this.visitLogicalExpr(node.right));
+	}
 
-	/* prettier-ignore */ private *visitBinaryExprEq(node: Nodes.NodeBinaryExprEqualTo): Generator<void | Value.BaseValue> { return yield* BINARY_OP_EQ(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right)); }
-	/* prettier-ignore */ private *visitBinaryExprNe(node: Nodes.NodeBinaryExprNotEqualTo): Generator<void | Value.BaseValue> { return yield* BINARY_OP_NE(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right)); }
-	/* prettier-ignore */ private *visitBinaryExprGt(node: Nodes.NodeBinaryExprGreaterThan): Generator<void | Value.BaseValue> { return yield* BINARY_OP_GT(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right)); }
-	/* prettier-ignore */ private *visitBinaryExprGe(node: Nodes.NodeBinaryExprGreaterEqualTo): Generator<void | Value.BaseValue> { return yield* BINARY_OP_GE(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right)); }
-	/* prettier-ignore */ private *visitBinaryExprLt(node: Nodes.NodeBinaryExprLessThan): Generator<void | Value.BaseValue> { return yield* BINARY_OP_LT(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right)); }
-	/* prettier-ignore */ private *visitBinaryExprLe(node: Nodes.NodeBinaryExprLessEqualTo): Generator<void | Value.BaseValue> { return yield* BINARY_OP_LE(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right)); }
+	@Debugger.capture<Nodes.NodeBinaryExprAnd>()
+	private *visitBinaryExprAnd(node: Nodes.NodeBinaryExprAnd): Generator<void | Value.BaseValue> {
+		return yield* BINARY_OP_AND(yield* this.visitLogicalExpr(node.left), yield* this.visitLogicalExpr(node.right));
+	}
 
-	/* prettier-ignore */ private *visitBinaryExprAdd(node: Nodes.NodeBinaryExprAdd): Generator<void | Value.BaseValue> { return yield* BINARY_OP_ADD(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right)); }
-	/* prettier-ignore */ private *visitBinaryExprSub(node: Nodes.NodeBinaryExprSub): Generator<void | Value.BaseValue> { return yield* BINARY_OP_SUB(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right)); }
-	/* prettier-ignore */ private *visitBinaryExprMul(node: Nodes.NodeBinaryExprMul): Generator<void | Value.BaseValue> { return yield* BINARY_OP_MUL(yield* this.visitTerm(node.left), yield* this.visitTerm(node.right)); }
-	/* prettier-ignore */ private *visitBinaryExprDiv(node: Nodes.NodeBinaryExprDiv): Generator<void | Value.BaseValue> { return yield* BINARY_OP_DIV(yield* this.visitTerm(node.left), yield* this.visitTerm(node.right)); }
-	/* prettier-ignore */ private *visitBinaryExprMod(node: Nodes.NodeBinaryExprMod): Generator<void | Value.BaseValue> { return yield* BINARY_OP_MOD(yield* this.visitTerm(node.left), yield* this.visitTerm(node.right)); }
+	@Debugger.capture<Nodes.NodeBinaryExprEqualTo>()
+	private *visitBinaryExprEq(node: Nodes.NodeBinaryExprEqualTo): Generator<void | Value.BaseValue> {
+		return yield* BINARY_OP_EQ(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right));
+	}
 
-	/* prettier-ignore */ private *visitUnaryNot(node: Nodes.NodeUnaryNot): Generator<void | Value.BaseValue> { return yield* UNARY_OP_NOT(yield* this.visitLogicalExpr(node.value)); }
+	@Debugger.capture<Nodes.NodeBinaryExprNotEqualTo>()
+	private *visitBinaryExprNe(node: Nodes.NodeBinaryExprNotEqualTo): Generator<void | Value.BaseValue> {
+		return yield* BINARY_OP_NE(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right));
+	}
+
+	@Debugger.capture<Nodes.NodeBinaryExprGreaterThan>()
+	private *visitBinaryExprGt(node: Nodes.NodeBinaryExprGreaterThan): Generator<void | Value.BaseValue> {
+		return yield* BINARY_OP_GT(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right));
+	}
+
+	@Debugger.capture<Nodes.NodeBinaryExprGreaterEqualTo>()
+	private *visitBinaryExprGe(node: Nodes.NodeBinaryExprGreaterEqualTo): Generator<void | Value.BaseValue> {
+		return yield* BINARY_OP_GE(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right));
+	}
+
+	@Debugger.capture<Nodes.NodeBinaryExprLessThan>()
+	private *visitBinaryExprLt(node: Nodes.NodeBinaryExprLessThan): Generator<void | Value.BaseValue> {
+		return yield* BINARY_OP_LT(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right));
+	}
+
+	@Debugger.capture<Nodes.NodeBinaryExprLessEqualTo>()
+	private *visitBinaryExprLe(node: Nodes.NodeBinaryExprLessEqualTo): Generator<void | Value.BaseValue> {
+		return yield* BINARY_OP_LE(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right));
+	}
+
+	@Debugger.capture<Nodes.NodeBinaryExprOr>()
+	private *visitBinaryExprAdd(node: Nodes.NodeBinaryExprAdd): Generator<void | Value.BaseValue> {
+		return yield* BINARY_OP_ADD(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right));
+	}
+
+	@Debugger.capture<Nodes.NodeBinaryExprOr>()
+	private *visitBinaryExprSub(node: Nodes.NodeBinaryExprSub): Generator<void | Value.BaseValue> {
+		return yield* BINARY_OP_SUB(yield* this.visitExpr(node.left), yield* this.visitExpr(node.right));
+	}
+
+	@Debugger.capture<Nodes.NodeBinaryExprMul>()
+	private *visitBinaryExprMul(node: Nodes.NodeBinaryExprMul): Generator<void | Value.BaseValue> {
+		return yield* BINARY_OP_MUL(yield* this.visitTerm(node.left), yield* this.visitTerm(node.right));
+	}
+
+	@Debugger.capture<Nodes.NodeBinaryExprDiv>()
+	private *visitBinaryExprDiv(node: Nodes.NodeBinaryExprDiv): Generator<void | Value.BaseValue> {
+		return yield* BINARY_OP_DIV(yield* this.visitTerm(node.left), yield* this.visitTerm(node.right));
+	}
+
+	@Debugger.capture<Nodes.NodeBinaryExprMod>()
+	private *visitBinaryExprMod(node: Nodes.NodeBinaryExprMod): Generator<void | Value.BaseValue> {
+		return yield* BINARY_OP_MOD(yield* this.visitTerm(node.left), yield* this.visitTerm(node.right));
+	}
+
+	@Debugger.capture<Nodes.NodeUnaryNot>()
+	private *visitUnaryNot(node: Nodes.NodeUnaryNot): Generator<void | Value.BaseValue> {
+		return yield* UNARY_OP_NOT(yield* this.visitLogicalExpr(node.value));
+	}
 
 	/**
 	 *
 	 * @param factor
 	 * @returns
 	 */
+	@Debugger.capture<Nodes.NodeFactorTypeUnion>()
 	private *visitFactor(factor: Nodes.NodeFactorTypeUnion): Generator<void | Value.BaseValue> {
 		switch (factor.type) {
 			case Nodes.NodeType.UnaryNot:
@@ -155,6 +208,7 @@ class Compiler {
 	 * @param term
 	 * @returns
 	 */
+	@Debugger.capture<Nodes.NodeTermTypeUnion>()
 	private *visitTerm(term: Nodes.NodeTermTypeUnion): Generator<void | Value.BaseValue> {
 		switch (term.type) {
 			case Nodes.NodeType.BinaryExprMul:
@@ -176,6 +230,7 @@ class Compiler {
 	 * @param expr
 	 * @returns
 	 */
+	@Debugger.capture<Nodes.NodeExprTypeUnion>()
 	private *visitExpr(expr: Nodes.NodeExprTypeUnion): Generator<void | Value.BaseValue> {
 		switch (expr.type) {
 			case Nodes.NodeType.BinaryExprAdd:
@@ -194,6 +249,7 @@ class Compiler {
 	 * @param conditional
 	 * @returns
 	 */
+	@Debugger.capture<Nodes.NodeConditionalExprTypeUnion>()
 	private *visitConditionalExpr(conditional: Nodes.NodeConditionalExprTypeUnion): Generator<void | Value.BaseValue> {
 		switch (conditional.type) {
 			case Nodes.NodeType.BinaryExprEqualTo:
@@ -224,6 +280,7 @@ class Compiler {
 	 * @param logical
 	 * @returns
 	 */
+	@Debugger.capture<Nodes.NodeLogicalExprTypeUnion>()
 	private *visitLogicalExpr(logical: Nodes.NodeLogicalExprTypeUnion): Generator<void | Value.BaseValue> {
 		switch (logical.type) {
 			case Nodes.NodeType.BinaryExprOr:
@@ -241,18 +298,20 @@ class Compiler {
 	 *
 	 * @param statement
 	 */
+	@Debugger.capture<Nodes.NodeObjectPropertyAccessor>()
 	private *visitDeclarationStmt(statement: Nodes.NodeDeclarationStmt): Generator<void | Value.BaseValue> {
-		this.context.define(statement.name, yield* this.visitLogicalExpr(statement.value));
+		return this.context.define(statement.name, yield* this.visitLogicalExpr(statement.value));
 	}
 
 	/**
 	 *
 	 * @param statement
 	 */
+	@Debugger.capture<Nodes.NodeAssignmentStmt>()
 	private *visitAssignmentStmt(statement: Nodes.NodeAssignmentStmt): Generator<void | Value.BaseValue> {
 		// Caso a variável seja um identificador, atribua o valor a ela diretamente
 		if (statement.target instanceof Nodes.NodeIdentifier) {
-			this.context.assign((statement.target as Nodes.NodeIdentifier).name, yield* this.visitLogicalExpr(statement.value));
+			return this.context.assign((statement.target as Nodes.NodeIdentifier).name, yield* this.visitLogicalExpr(statement.value));
 		} else {
 			// Obtém a instância do objeto
 			const object = yield* this.visitLogicalExpr((statement.target as Nodes.NodeObjectPropertyAccessor).callee!);
@@ -263,6 +322,9 @@ class Compiler {
 
 			// Atribui o valor ao objeto
 			Value.AS_OBJECT(object).__newIndex__(symbol, value);
+
+			// Somente para fins de depuração
+			return value;
 		}
 	}
 
@@ -270,6 +332,7 @@ class Compiler {
 	 *
 	 * @param statement
 	 */
+	@Debugger.capture<Nodes.NodeBlockStmt>()
 	private *visitBlockStmt(statement: Nodes.NodeBlockStmt): Generator<void | Value.BaseValue> {
 		this.enterScope();
 
@@ -284,6 +347,7 @@ class Compiler {
 	 *
 	 * @param statement
 	 */
+	@Debugger.capture<Nodes.NodeWhileStmt>()
 	private *visitWhileStmt(statement: Nodes.NodeWhileStmt): Generator<void | Value.BaseValue> {
 		while (Value.AS_BOOLEAN(yield* this.visitLogicalExpr(statement.condition))) {
 			// Entra no escopo do loop e então empilha o contexto do loop
@@ -321,6 +385,7 @@ class Compiler {
 	 *
 	 * @param statement
 	 */
+	@Debugger.capture<Nodes.NodeNumericForStmt>()
 	private *visitNumericForStmt(statement: Nodes.NodeNumericForStmt): Generator<void | Value.BaseValue> {
 		// Entra no escopo de definição dos parâmetros do loop
 		this.enterScope();
@@ -417,6 +482,7 @@ class Compiler {
 	 *
 	 * @param statement
 	 */
+	@Debugger.capture<Nodes.NodeIterativeForStmt>()
 	private *visitIterativeForStmt(statement: Nodes.NodeIterativeForStmt): Generator<void | Value.BaseValue> {
 		if (!Value.IS_OBJECT(yield* this.visitLogicalExpr(statement.iterable))) {
 			throw new Exceptions.UnsupportedOperationError();
@@ -490,14 +556,40 @@ class Compiler {
 	 *
 	 * @param statement
 	 */
+	@Debugger.capture<Nodes.NodeFunctionDeclarationStmt>()
 	private *visitFunctionDeclarationStmt(statement: Nodes.NodeFunctionDeclarationStmt): Generator<void> {
-		this.context.define(statement.name, new Value.CodeObject(statement.name, statement.parameters, statement.body, this.context));
+		return this.context.define(statement.name, new Value.CodeObject(statement.name, statement.parameters, statement.body, this.context));
+	}
+
+	@Debugger.capture<Nodes.NodeBreakStmt>()
+	private *visitBreakStmt(): Generator<void> {
+		this.context.getLoopContext().break = true;
+	}
+
+	@Debugger.capture<Nodes.NodeContinueStmt>()
+	private *visitContinueStmt(): Generator<void> {
+		this.context.getLoopContext().continue = true;
 	}
 
 	/**
 	 *
 	 * @param statement
 	 */
+	@Debugger.capture<Nodes.NodeReturnStmt>()
+	private *visitReturnStmt(statement: Nodes.NodeReturnStmt): Generator<void | Value.BaseValue> {
+		const returns: Value.BaseValue[] = [];
+		for (const value of statement.returns) {
+			returns.push(yield* this.visitLogicalExpr(value));
+		}
+
+		this.context.getFunctionContext().returns.push(...returns);
+	}
+
+	/**
+	 *
+	 * @param statement
+	 */
+	@Debugger.capture<Nodes.NodeIfStmt>()
 	private *visitIfStmt(statement: Nodes.NodeIfStmt): Generator<void | Value.BaseValue> {
 		// Testa a condição do if
 		if (Value.AS_BOOLEAN(yield* this.visitLogicalExpr(statement.condition))) {
@@ -517,75 +609,48 @@ class Compiler {
 		}
 	}
 
-	/* prettier-ignore */ private *visitBreakStmt(): Generator<void> { this.context.getLoopContext().break = true; }
-	/* prettier-ignore */ private *visitContinueStmt(): Generator<void> { this.context.getLoopContext().continue = true; }
-
 	/**
 	 *
 	 * @param statement
 	 */
-	private *visitReturnStmt(statement: Nodes.NodeReturnStmt): Generator<void | Value.BaseValue> {
-		const returns: Value.BaseValue[] = [];
-		for (const value of statement.returns) {
-			returns.push(yield* this.visitLogicalExpr(value));
-		}
-
-		this.context.getFunctionContext().returns.push(...returns);
-	}
-
-	/**
-	 *
-	 * @param statement
-	 */
+	@Debugger.capture<Nodes.Node>()
 	private *visitStmt(statement: Nodes.Node): Generator<void | Value.BaseValue> {
 		switch (statement.type) {
 			case Nodes.NodeType.DeclarationStmt:
-				yield* this.visitDeclarationStmt(statement as Nodes.NodeDeclarationStmt);
-				break;
+				return yield* this.visitDeclarationStmt(statement as Nodes.NodeDeclarationStmt);
 
 			case Nodes.NodeType.AssignmentStmt:
-				yield* this.visitAssignmentStmt(statement as Nodes.NodeAssignmentStmt);
-				break;
+				return yield* this.visitAssignmentStmt(statement as Nodes.NodeAssignmentStmt);
 
 			case Nodes.NodeType.BlockStmt:
-				yield* this.visitBlockStmt(statement as Nodes.NodeBlockStmt);
-				break;
+				return yield* this.visitBlockStmt(statement as Nodes.NodeBlockStmt);
 
 			case Nodes.NodeType.WhileStmt:
-				yield* this.visitWhileStmt(statement as Nodes.NodeWhileStmt);
-				break;
+				return yield* this.visitWhileStmt(statement as Nodes.NodeWhileStmt);
 
 			case Nodes.NodeType.NumericForStmt:
-				yield* this.visitNumericForStmt(statement as Nodes.NodeNumericForStmt);
-				break;
+				return yield* this.visitNumericForStmt(statement as Nodes.NodeNumericForStmt);
 
 			case Nodes.NodeType.IterativeForStmt:
-				yield* this.visitIterativeForStmt(statement as Nodes.NodeIterativeForStmt);
-				break;
+				return yield* this.visitIterativeForStmt(statement as Nodes.NodeIterativeForStmt);
 
 			case Nodes.NodeType.FunctionDeclarationStmt:
-				yield* this.visitFunctionDeclarationStmt(statement as Nodes.NodeFunctionDeclarationStmt);
-				break;
+				return yield* this.visitFunctionDeclarationStmt(statement as Nodes.NodeFunctionDeclarationStmt);
 
 			case Nodes.NodeType.IfStmt:
-				yield* this.visitIfStmt(statement as Nodes.NodeIfStmt);
-				break;
+				return yield* this.visitIfStmt(statement as Nodes.NodeIfStmt);
 
 			case Nodes.NodeType.BreakStmt:
-				yield* this.visitBreakStmt();
-				break;
+				return yield* this.visitBreakStmt();
 
 			case Nodes.NodeType.ContinueStmt:
-				yield* this.visitContinueStmt();
-				break;
+				return yield* this.visitContinueStmt();
 
 			case Nodes.NodeType.ReturnStmt:
-				yield* this.visitReturnStmt(statement as Nodes.NodeReturnStmt);
-				break;
+				return yield* this.visitReturnStmt(statement as Nodes.NodeReturnStmt);
 
 			case Nodes.NodeType.ObjectAccessor:
-				yield* this.visitObjectAccessor(statement as Nodes.NodeObjectAccessor);
-				break;
+				return yield* this.visitObjectAccessor(statement as Nodes.NodeObjectAccessor);
 
 			default:
 				throw new Exceptions.UnreachableNodeError(statement);
@@ -669,6 +734,7 @@ class Compiler {
 	 *
 	 * @param node
 	 */
+	@Debugger.capture<Nodes.NodeObjectFunctionAccessor>()
 	private *__visitObjectFunctionAccessor(node: Nodes.NodeObjectFunctionAccessor): Generator<void | Value.BaseValue> {
 		let code: Value.CodeObject | Value.BuiltInCodeObject | null;
 
@@ -693,6 +759,7 @@ class Compiler {
 	 *
 	 * @param node
 	 */
+	@Debugger.capture<Nodes.NodeObjectPropertyAccessor>()
 	private *__visitObjectPropertyAccessor(node: Nodes.NodeObjectPropertyAccessor): Generator<void | Value.BaseValue> {
 		if (node.callee === undefined) {
 			return yield* this.visitLogicalExpr(node.key);
@@ -715,6 +782,7 @@ class Compiler {
 	 * @param node
 	 * @returns
 	 */
+	@Debugger.capture<Nodes.NodeObjectAccessor>()
 	private *visitObjectAccessor(node: Nodes.NodeObjectAccessor): Generator<void | Value.BaseValue> {
 		const accessor = node as Nodes.NodeObjectAccessor;
 		if (accessor instanceof Nodes.NodeObjectFunctionAccessor) {
@@ -747,7 +815,7 @@ class Compiler {
 	 *
 	 * @returns
 	 */
-	public *debug(__debugger: Debugger): Generator<void | Value.BaseValue, void, unknown> {
+	public *debug(__debugger: Debugger.Debugger): Generator<void | Value.BaseValue, void, unknown> {
 		this.__debugger = __debugger;
 
 		for (const statement of this.program) {
