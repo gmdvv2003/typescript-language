@@ -1,0 +1,7 @@
+bloco
+	declarar tbl = []
+	para i de 0 ate 10 opere i = i + 1 faca
+		tbl[i] = i
+	fim
+	escreva(tbl)
+fim

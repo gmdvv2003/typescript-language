@@ -19,8 +19,8 @@ export class VariableNotDefinedError extends Error {
 }
 
 export class UnsupportedOperationError extends Error {
-	constructor() {
-		super("Unsupported operation");
+	constructor(message: string) {
+		super(`Unsupported operation: ${message}`);
 	}
 }
 

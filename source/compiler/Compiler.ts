@@ -422,7 +422,10 @@ class Compiler {
 					// Caso o valor seja um número, verifica se o valor da variável é menor que o valor do loop
 					case Value.ValueType.Number:
 						keepGoing = (
-							(yield* BINARY_OP_LT(this.context.get((statement.initializer as Nodes.NodeIdentifier).name)!.value, value)) as Value.BooleanValue
+							(yield* BINARY_OP_LT(
+								this.context.get((statement.initializer as Nodes.NodeIdentifier).name)!.value,
+								value
+							)) as Value.BooleanValue
 						).value;
 						break;
 
@@ -485,7 +488,7 @@ class Compiler {
 	@Debugger.capture<Nodes.NodeIterativeForStmt>()
 	private *visitIterativeForStmt(statement: Nodes.NodeIterativeForStmt): Generator<void | Value.BaseValue> {
 		if (!Value.IS_OBJECT(yield* this.visitLogicalExpr(statement.iterable))) {
-			throw new Exceptions.UnsupportedOperationError();
+			throw new Exceptions.UnsupportedOperationError("Attempted to iterate over a non-iterable object.");
 		}
 
 		// Obtém o objeto iterável
@@ -558,7 +561,10 @@ class Compiler {
 	 */
 	@Debugger.capture<Nodes.NodeFunctionDeclarationStmt>()
 	private *visitFunctionDeclarationStmt(statement: Nodes.NodeFunctionDeclarationStmt): Generator<void> {
-		return this.context.define(statement.name, new Value.CodeObject(statement.name, statement.parameters, statement.body, this.context));
+		return this.context.define(
+			statement.name,
+			new Value.CodeObject(statement.name, statement.parameters, statement.body, this.context)
+		);
 	}
 
 	@Debugger.capture<Nodes.NodeBreakStmt>()
@@ -719,7 +725,10 @@ class Compiler {
 	 * @param local
 	 * @param statement
 	 */
-	private *__executeBuiltInFunction(code: Value.BuiltInCodeObject, accessor: Nodes.NodeObjectFunctionAccessor): Generator<void | Value.BaseValue> {
+	private *__executeBuiltInFunction(
+		code: Value.BuiltInCodeObject,
+		accessor: Nodes.NodeObjectFunctionAccessor
+	): Generator<void | Value.BaseValue> {
 		// Mapeia os argumentos passados para os parâmetros da função
 		const inputs: Value.BaseValue[] = [];
 		for (const input of accessor.inputs) {
@@ -752,7 +761,7 @@ class Compiler {
 			return yield* this.__executeBuiltInFunction(code, node);
 		}
 
-		throw new Exceptions.UnsupportedOperationError();
+		throw new Exceptions.UnsupportedOperationError(`Attempted to call a non-function.`);
 	}
 
 	/**
@@ -793,7 +802,7 @@ class Compiler {
 			return yield* this.__visitObjectPropertyAccessor(accessor as Nodes.NodeObjectPropertyAccessor);
 		}
 
-		throw new Exceptions.UnsupportedOperationError();
+		throw new Exceptions.UnsupportedOperationError("Attempted to access a non-object.");
 	}
 
 	/**

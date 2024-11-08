@@ -32,23 +32,23 @@ export enum ObjectType {
 export class BaseValue {
 	constructor(public readonly valueType: ValueType) {}
 
-	/* prettier-ignore */ __add__(a: BaseValue, b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError(); } // Metamétodo de adição
-	/* prettier-ignore */ __sub__(a: BaseValue, b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError(); } // Metamétodo de subtração
-	/* prettier-ignore */ __mul__(a: BaseValue, b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError(); } // Metamétodo de multiplicação
-	/* prettier-ignore */ __div__(a: BaseValue, b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError(); } // Metamétodo de divisão
-	/* prettier-ignore */ __mod__(a: BaseValue, b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError(); } // Metamétodo de módulo
+	/* prettier-ignore */ __add__(a: BaseValue, b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__add__ not implemented."); } // Metamétodo de adição
+	/* prettier-ignore */ __sub__(a: BaseValue, b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__sub__ not implemented."); } // Metamétodo de subtração
+	/* prettier-ignore */ __mul__(a: BaseValue, b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__mul__ not implemented."); } // Metamétodo de multiplicação
+	/* prettier-ignore */ __div__(a: BaseValue, b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__div__ not implemented."); } // Metamétodo de divisão
+	/* prettier-ignore */ __mod__(a: BaseValue, b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__mod__ not implemented."); } // Metamétodo de módulo
 
-	/* prettier-ignore */ __eq__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError(); } // Metamétodo de igualdade
-	/* prettier-ignore */ __ne__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError(); } // Metamétodo de diferença
-	/* prettier-ignore */ __gt__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError(); } // Metamétodo de maior que
-	/* prettier-ignore */ __ge__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError(); } // Metamétodo de maior ou igual que
-	/* prettier-ignore */ __lt__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError(); } // Metamétodo de menor que
-	/* prettier-ignore */ __le__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError(); } // Metamétodo de menor ou igual que
+	/* prettier-ignore */ __eq__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__eq__ not implemented."); } // Metamétodo de igualdade
+	/* prettier-ignore */ __ne__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__ne__ not implemented."); } // Metamétodo de diferença
+	/* prettier-ignore */ __gt__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__gt__ not implemented."); } // Metamétodo de maior que
+	/* prettier-ignore */ __ge__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__ge__ not implemented."); } // Metamétodo de maior ou igual que
+	/* prettier-ignore */ __lt__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__lt__ not implemented."); } // Metamétodo de menor que
+	/* prettier-ignore */ __le__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__le__ not implemented."); } // Metamétodo de menor ou igual que
 
-	/* prettier-ignore */ __not__(a: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError(); } // Metamétodo de negação
+	/* prettier-ignore */ __not__(a: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__not__ not implemented."); } // Metamétodo de negação
 
 	toString(): string {
-		throw new Exceptions.UnsupportedOperationError();
+		throw new Exceptions.UnsupportedOperationError("toString not implemented.");
 	}
 }
 
@@ -81,7 +81,7 @@ export class NumberValue extends BaseValue {
 			return STRING(a.value.toString() + AS_STRING(b).value);
 		}
 
-		throw new Exceptions.UnsupportedOperationError();
+		throw new Exceptions.UnsupportedOperationError(`Could't perform addition between ${a.valueType} and ${b.valueType}`);
 	}
 
 	__sub__(a: NumberValue, b: BaseValue): BaseValue {
@@ -90,7 +90,7 @@ export class NumberValue extends BaseValue {
 			return NUMBER(a.value - AS_NUMBER(b));
 		}
 
-		throw new Exceptions.UnsupportedOperationError();
+		throw new Exceptions.UnsupportedOperationError(`Could't perform subtraction between ${a.valueType} and ${b.valueType}`);
 	}
 
 	__mul__(a: NumberValue, b: BaseValue): BaseValue {
@@ -99,7 +99,7 @@ export class NumberValue extends BaseValue {
 			return NUMBER(a.value * AS_NUMBER(b));
 		}
 
-		throw new Exceptions.UnsupportedOperationError();
+		throw new Exceptions.UnsupportedOperationError(`Could't perform multiplication between ${a.valueType} and ${b.valueType}`);
 	}
 
 	__div__(a: NumberValue, b: BaseValue): BaseValue {
@@ -108,7 +108,7 @@ export class NumberValue extends BaseValue {
 			return NUMBER(a.value / AS_NUMBER(b));
 		}
 
-		throw new Exceptions.UnsupportedOperationError();
+		throw new Exceptions.UnsupportedOperationError(`Could't perform division between ${a.valueType} and ${b.valueType}`);
 	}
 
 	__mod__(a: NumberValue, b: BaseValue): BaseValue {
@@ -117,7 +117,7 @@ export class NumberValue extends BaseValue {
 			return NUMBER(a.value % AS_NUMBER(b));
 		}
 
-		throw new Exceptions.UnsupportedOperationError();
+		throw new Exceptions.UnsupportedOperationError(`Could't perform modulo between ${a.valueType} and ${b.valueType}`);
 	}
 
 	/* prettier-ignore */ __eq__(a: NumberValue, b: BaseValue): boolean { return IS_NUMBER(b) && a.value === AS_NUMBER(b); }
@@ -203,7 +203,7 @@ export class StringObject extends ObjectValue {
 			return STRING(a.value + AS_NUMBER(b).toString());
 		}
 
-		throw new Exceptions.UnsupportedOperationError();
+		throw new Exceptions.UnsupportedOperationError(`Could't perform concatenation between ${a.valueType} and ${b.valueType}`);
 	}
 
 	/* prettier-ignore */ __eq__(a: StringObject, b: BaseValue): boolean { return IS_STRING(b) && a.value === AS_STRING(b).value; }

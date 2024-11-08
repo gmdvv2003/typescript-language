@@ -146,8 +146,7 @@ class Lexer {
 			switch (characterAtPointer) {
 				// Quebra de linha
 				case "\n":
-					this.currentLine += 1;
-					this.currentColumn = 1;
+				case "\r":
 					break;
 
 				// Espaço em branco

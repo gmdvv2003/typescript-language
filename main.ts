@@ -1,42 +1,33 @@
+import * as process from "process";
+import * as fileSystem from "fs";
+
 import { Compiler } from "./source/compiler/Compiler";
 import { Debugger } from "./source/debugger/Debugger";
 import { Lexer } from "./source/lexer/Lexer";
 import { Parser } from "./source/parser/Parser";
 
-const source = `
-bloco
-	declarar memo = {}
+// Pega os argumentos passados para o programa
+const processArguments = process.argv.slice(2);
 
-	funcao fibonacci(n)
-		se memo[n] faca
-			retorna memo[n]
-		fim
-
-		se n == 0 faca
-			retorna 0
-		fim
-
-		caso n == 1 faca
-			retorna 1
-		fim
-
-		memo[n] = fibonacci(n - 1) + fibonacci(n - 2)
-		retorna memo[n]
-	fim
-
-	escreva(fibonacci(600))
-fim
-`;
+// Procura por um arquivo válido na lista de argumentos
+const sourceCodePath = processArguments.find((argument) => fileSystem.existsSync(argument) && fileSystem.lstatSync(argument).isFile());
+if (!sourceCodePath) {
+	throw new Error("No valid source code file found.");
+}
 
 try {
-	const lexer = new Lexer(source);
-	const tokens = lexer.lex();
+	// Lê o código fonte do arquivo
+	const source = fileSystem.readFileSync(sourceCodePath, "utf8");
 
-	const parser = new Parser(tokens);
-	const program = parser.parse();
+	// Cria um lexer e um parser para o código fonte
+	const lexer = new Lexer(source).lex();
+	const parser = new Parser(lexer).parse();
 
-	const compiler = new Compiler(program);
-	new Debugger(compiler);
-} catch (exception) {
-	console.error((<Error>exception).message);
+	if (processArguments.includes("--debug")) {
+		new Debugger(new Compiler(parser));
+	} else {
+		new Compiler(parser).execute();
+	}
+} catch (error) {
+	console.error((<Error>error).stack);
 }
