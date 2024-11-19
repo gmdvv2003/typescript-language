@@ -1,14 +1,3 @@
 bloco
-	declarar tbl = {
-		["add"] = funcao(a, b) retorna a + b fim,
-		["sub"] = funcao(a, b) retorna a - b fim,
-		["mul"] = funcao(a, b) retorna a * b fim,
-		["div"] = funcao(a, b) retorna a / b fim,
-	}
-
-	funcao calc(k, a, b)
-		retorna tbl[k](a, b)
-	fim
-
-	escreva(calc("add", 10, 5))
+	Log.Escreva("Hello World!")
 fim

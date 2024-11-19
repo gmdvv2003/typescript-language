@@ -1,45 +1,50 @@
-import { Context } from "../compiler/Context";
+import * as Value from "../compiler/Value";
+import * as Context from "../compiler/Context";
 
 import { __Log as Log } from "./packages/Log";
 import { __Math as Math } from "./packages/Math";
 
 interface BuiltInFunction {
-	(context: Context, ...any: any[]): any;
+	(context: Context.Context, ...any: any[]): any;
 }
 
 class BuiltIns {
-	constructor(private readonly context: Context) {}
+	constructor(private readonly context: Context.Context) {}
 
 	/**
 	 *
 	 * @param callback
 	 * @returns
 	 */
-	private wrapInternal(callback: BuiltInFunction): (...any: any[]) => any {
-		return (...any: any[]) => {
+	private wrapInternal(callback: BuiltInFunction): Value.BuiltInCodeObject {
+		return new Value.BuiltInCodeObject((...any: any[]) => {
 			return callback(this.context, ...any);
-		};
+		});
 	}
 
 	/**
 	 *
 	 * @returns
 	 */
-	public load(): { [key: string]: BuiltInFunction | any } {
+	public load(): { [key: string]: Value.BaseValue } {
 		return {
 			// ===== Math ===== //
-			PI: Math.PI,
-			TAU: Math.TAU,
+			Math: Value.DICTIONARY({
+				PI: Math.PI,
+				TAU: Math.TAU,
 
-			seno: this.wrapInternal(Math.seno),
-			cosseno: this.wrapInternal(Math.cosseno),
-			tangente: this.wrapInternal(Math.tangente),
+				Seno: this.wrapInternal(Math.seno),
+				Cosseno: this.wrapInternal(Math.cosseno),
+				Tangente: this.wrapInternal(Math.tangente),
 
-			potencia: this.wrapInternal(Math.potencia),
-			raiz: this.wrapInternal(Math.raiz),
+				Potencia: this.wrapInternal(Math.potencia),
+				Raiz: this.wrapInternal(Math.raiz),
+			}),
 
 			// ===== Log ===== //
-			escreva: this.wrapInternal(Log.escreva),
+			Log: Value.DICTIONARY({
+				Escreva: this.wrapInternal(Log.escreva),
+			}),
 		};
 	}
 }

@@ -29,7 +29,7 @@ export class Context {
 	// Nível do escopo atual
 	public scopeLevel: number = -1;
 
-	constructor(public readonly parentContext: Context | null, builtIns: { [key: string]: (...any: any[]) => any } = {}) {
+	constructor(public readonly parentContext: Context | null, builtIns: { [key: string]: Value.BaseValue } = {}) {
 		for (const [key, value] of Object.entries(builtIns)) {
 			// Caso o valor implemente a interface BaseValue, define a variável diretamente
 			if (value instanceof Value.BaseValue) {
