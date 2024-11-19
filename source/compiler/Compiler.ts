@@ -198,6 +198,10 @@ class Compiler {
 				return yield* this.visitObjectAccessor(factor as Nodes.NodeObjectAccessor);
 			}
 
+			case Nodes.NodeType.AnonymousFunctionDeclarationStmt: {
+				return yield* this.visitAnonymousFunctionDeclarationStmt(factor as Nodes.NodeAnonymousFunctionDeclarationStmt);
+			}
+
 			default:
 				throw new Exceptions.UnreachableNodeError(factor);
 		}
@@ -567,6 +571,14 @@ class Compiler {
 		);
 	}
 
+	/**
+	 *
+	 * @param statement
+	 */
+	private *visitAnonymousFunctionDeclarationStmt(statement: Nodes.NodeAnonymousFunctionDeclarationStmt): Generator<void> {
+		return new Value.CodeObject("anonymous", statement.parameters, statement.body, this.context);
+	}
+
 	@Debugger.capture<Nodes.NodeBreakStmt>()
 	private *visitBreakStmt(): Generator<void> {
 		this.context.getLoopContext().break = true;
@@ -659,7 +671,7 @@ class Compiler {
 				return yield* this.visitObjectAccessor(statement as Nodes.NodeObjectAccessor);
 
 			default:
-				throw new Exceptions.UnreachableNodeError(statement);
+				return yield* this.visitLogicalExpr(statement as Nodes.NodeLogicalExprTypeUnion);
 		}
 	}
 

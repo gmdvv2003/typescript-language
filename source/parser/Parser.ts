@@ -166,7 +166,11 @@ class Parser {
 				try {
 					const node = this.parsePropertyAccessor();
 					if (node) {
-						if (node instanceof Nodes.NodeObjectPropertyAccessor && node.key.type === Nodes.NodeType.Identifier && node.callee === undefined) {
+						if (
+							node instanceof Nodes.NodeObjectPropertyAccessor &&
+							node.key.type === Nodes.NodeType.Identifier &&
+							node.callee === undefined
+						) {
 							return new Nodes.NodeIdentifier((node.key as Nodes.NodeIdentifier).name);
 						}
 
@@ -206,7 +210,22 @@ class Parser {
 					// Consome o parênteses de fechamento
 					this.consumeTokenAndAdvance(TokenType.RightParentheses);
 
-					return node;
+					switch (node.type) {
+						// Caso seja uma declaração de função anônima, consome o acessor de função se possível
+						case Nodes.NodeType.AnonymousFunctionDeclarationStmt:
+							try {
+								const accessor = this.__parseFunctionAccessor();
+
+								// Atribui o chamador da função anônima
+								accessor.callee = node;
+
+								// Retorna o acessor no lugar da nó
+								return accessor;
+							} catch (_) {}
+
+						default:
+							return node;
+					}
 				}
 
 				// Caso seja colchetes, consome o array
@@ -217,6 +236,10 @@ class Parser {
 				// Caso seja chaves, consome o objeto
 				if (currentToken.type === TokenType.LeftBraces) {
 					return this.__parseDictionaryLiteral();
+				}
+
+				if (currentToken.type === TokenType.Function) {
+					return this.parseAnonymousFunctionDeclarationStmt();
 				}
 
 				throw new Exceptions.ExpressionExpectedError(this.previousToken, currentToken);
@@ -230,7 +253,11 @@ class Parser {
 	private parseTerm(): Nodes.NodeTermTypeUnion {
 		let node = this.parseFactor();
 
-		while (this.currentToken.type === TokenType.Multiply || this.currentToken.type === TokenType.Divide || this.currentToken.type === TokenType.Modulus) {
+		while (
+			this.currentToken.type === TokenType.Multiply ||
+			this.currentToken.type === TokenType.Divide ||
+			this.currentToken.type === TokenType.Modulus
+		) {
 			const currentToken = this.currentToken;
 
 			// Consome o operador e avança
@@ -559,6 +586,44 @@ class Parser {
 		this.consumeTokenAndAdvance(TokenType.End);
 
 		return new Nodes.NodeFunctionDeclarationStmt(name, parameters, body);
+	}
+
+	/**
+	 *
+	 * @returns
+	 */
+	private parseAnonymousFunctionDeclarationStmt(): Nodes.NodeAnonymousFunctionDeclarationStmt {
+		// Consome a palavra chave "função" e avança
+		this.consumeTokenAndAdvance(TokenType.Function);
+
+		// Consome os parênteses de abertura e avança
+		this.consumeTokenAndAdvance(TokenType.LeftParentheses);
+
+		// Consome os parâmetros da função e avança
+		let parameters: string[] = [];
+		while (this.currentToken.type === TokenType.Identifier) {
+			// Adiciona o parâmetro na lista e avança
+			parameters.push(this.currentToken.word);
+
+			// Consome o identificador e avança
+			this.consumeTokenAndAdvance(TokenType.Identifier);
+
+			// Consome a vírgula caso exista
+			if (this.currentToken.type === (TokenType.Comma as TokenType)) {
+				this.consumeTokenAndAdvance(TokenType.Comma);
+			}
+		}
+
+		// Consome os parênteses de fechamento e avança
+		this.consumeTokenAndAdvance(TokenType.RightParentheses);
+
+		// Consome o corpo da função e avança
+		const body = this.parseBody();
+
+		// Consome a palavra chave "fim" e avança
+		this.consumeTokenAndAdvance(TokenType.End);
+
+		return new Nodes.NodeAnonymousFunctionDeclarationStmt(parameters, body);
 	}
 
 	/* prettier-ignore */ private parseBreakStmt(): Nodes.NodeBreakStmt { this.consumeTokenAndAdvance(TokenType.Break); return new Nodes.NodeBreakStmt(); }

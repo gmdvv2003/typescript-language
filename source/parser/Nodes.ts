@@ -41,6 +41,7 @@ export enum NodeType {
 	IterativeForStmt = "IterativeForStmt",
 
 	FunctionDeclarationStmt = "FunctionDeclarationStmt",
+	AnonymousFunctionDeclarationStmt = "AnonymousFunctionDeclarationStmt",
 
 	IfStmt = "IfStmt",
 	ElseIfStmt = "ElseIfStmt",
@@ -204,6 +205,16 @@ export class NodeFunctionDeclarationStmt extends Node {
 	}
 }
 
+export class NodeAnonymousFunctionDeclarationStmt extends Node {
+	constructor(public readonly parameters: string[], public readonly body: NodeStmtTypeUnion[]) {
+		super(NodeType.AnonymousFunctionDeclarationStmt);
+	}
+
+	toString() {
+		return `função(${this.parameters.join(", ")}) ${this.body.map((stmt): string => stmt.toString()).join("\n")}`;
+	}
+}
+
 export class NodeIfStmt extends Node {
 	constructor(
 		public readonly condition: NodeLogicalExprTypeUnion,
@@ -248,8 +259,8 @@ export class NodeObjectAccessor extends Node {
 }
 
 export class NodeObjectFunctionAccessor extends NodeObjectAccessor {
-	constructor(public readonly inputs: NodeExprTypeUnion[]) {
-		super();
+	constructor(public readonly inputs: NodeExprTypeUnion[], callee?: NodeExprTypeUnion) {
+		super(callee);
 	}
 
 	toString() {
@@ -258,8 +269,8 @@ export class NodeObjectFunctionAccessor extends NodeObjectAccessor {
 }
 
 export class NodeObjectPropertyAccessor extends NodeObjectAccessor {
-	constructor(public readonly key: NodeExprTypeUnion) {
-		super();
+	constructor(public readonly key: NodeExprTypeUnion, callee?: NodeExprTypeUnion) {
+		super(callee);
 	}
 
 	toString() {

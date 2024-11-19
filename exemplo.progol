@@ -1,7 +1,14 @@
 bloco
-	declarar tbl = []
-	para i de 0 ate 10 opere i = i + 1 faca
-		tbl[i] = i
+	declarar tbl = {
+		["add"] = funcao(a, b) retorna a + b fim,
+		["sub"] = funcao(a, b) retorna a - b fim,
+		["mul"] = funcao(a, b) retorna a * b fim,
+		["div"] = funcao(a, b) retorna a / b fim,
+	}
+
+	funcao calc(k, a, b)
+		retorna tbl[k](a, b)
 	fim
-	escreva(tbl)
+
+	escreva(calc("add", 10, 5))
 fim
