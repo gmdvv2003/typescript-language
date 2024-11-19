@@ -44,6 +44,7 @@ class BuiltIns {
 			// ===== Log ===== //
 			Log: Value.DICTIONARY({
 				Escreva: this.wrapInternal(Log.escreva),
+				Leia: this.wrapInternal(Log.leia),
 			}),
 		};
 	}

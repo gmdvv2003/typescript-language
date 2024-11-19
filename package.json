@@ -11,6 +11,7 @@
 	"description": "",
 	"devDependencies": {
 		"@eslint/js": "^9.11.1",
+		"@types/deasync": "^0.1.5",
 		"eslint": "^9.11.1",
 		"eslint-plugin-react": "^7.37.0",
 		"globals": "^15.9.0",
@@ -19,6 +20,7 @@
 	},
 	"dependencies": {
 		"a3-language": "file:",
+		"deasync": "^0.1.30",
 		"ts-node": "^10.9.2",
 		"typescript-optional": "^3.0.0-alpha.3"
 	}
