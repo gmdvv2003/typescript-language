@@ -32,20 +32,20 @@ export enum ObjectType {
 export class BaseValue {
 	constructor(public readonly valueType: ValueType) {}
 
-	/* prettier-ignore */ __add__(a: BaseValue, b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__add__ not implemented."); } // Metamétodo de adição
-	/* prettier-ignore */ __sub__(a: BaseValue, b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__sub__ not implemented."); } // Metamétodo de subtração
-	/* prettier-ignore */ __mul__(a: BaseValue, b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__mul__ not implemented."); } // Metamétodo de multiplicação
-	/* prettier-ignore */ __div__(a: BaseValue, b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__div__ not implemented."); } // Metamétodo de divisão
-	/* prettier-ignore */ __mod__(a: BaseValue, b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__mod__ not implemented."); } // Metamétodo de módulo
+	/* prettier-ignore */ __add__(b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__add__ not implemented."); } // Metamétodo de adição
+	/* prettier-ignore */ __sub__(b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__sub__ not implemented."); } // Metamétodo de subtração
+	/* prettier-ignore */ __mul__(b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__mul__ not implemented."); } // Metamétodo de multiplicação
+	/* prettier-ignore */ __div__(b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__div__ not implemented."); } // Metamétodo de divisão
+	/* prettier-ignore */ __mod__(b: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__mod__ not implemented."); } // Metamétodo de módulo
 
-	/* prettier-ignore */ __eq__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__eq__ not implemented."); } // Metamétodo de igualdade
-	/* prettier-ignore */ __ne__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__ne__ not implemented."); } // Metamétodo de diferença
-	/* prettier-ignore */ __gt__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__gt__ not implemented."); } // Metamétodo de maior que
-	/* prettier-ignore */ __ge__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__ge__ not implemented."); } // Metamétodo de maior ou igual que
-	/* prettier-ignore */ __lt__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__lt__ not implemented."); } // Metamétodo de menor que
-	/* prettier-ignore */ __le__(a: BaseValue, b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__le__ not implemented."); } // Metamétodo de menor ou igual que
+	/* prettier-ignore */ __eq__(b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__eq__ not implemented."); } // Metamétodo de igualdade
+	/* prettier-ignore */ __ne__(b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__ne__ not implemented."); } // Metamétodo de diferença
+	/* prettier-ignore */ __gt__(b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__gt__ not implemented."); } // Metamétodo de maior que
+	/* prettier-ignore */ __ge__(b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__ge__ not implemented."); } // Metamétodo de maior ou igual que
+	/* prettier-ignore */ __lt__(b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__lt__ not implemented."); } // Metamétodo de menor que
+	/* prettier-ignore */ __le__(b: BaseValue): boolean { throw new Exceptions.UnsupportedOperationError("__le__ not implemented."); } // Metamétodo de menor ou igual que
 
-	/* prettier-ignore */ __not__(a: BaseValue): BaseValue { throw new Exceptions.UnsupportedOperationError("__not__ not implemented."); } // Metamétodo de negação
+	/* prettier-ignore */ __not__(): BaseValue { throw new Exceptions.UnsupportedOperationError("__not__ not implemented."); } // Metamétodo de negação
 
 	toString(): string {
 		throw new Exceptions.UnsupportedOperationError("toString not implemented.");
@@ -57,8 +57,8 @@ export class NullValue extends BaseValue {
 		super(ValueType.Null);
 	}
 
-	/* prettier-ignore */ __eq__(a: NullValue, b: BaseValue): boolean { return b instanceof NullValue; }
-	/* prettier-ignore */ __ne__(a: NullValue, b: BaseValue): boolean { return !(b instanceof NullValue); }
+	/* prettier-ignore */ __eq__(b: BaseValue): boolean { return b instanceof NullValue; }
+	/* prettier-ignore */ __ne__(b: BaseValue): boolean { return !(b instanceof NullValue); }
 
 	toString(): string {
 		return "Nulo";
@@ -70,65 +70,65 @@ export class NumberValue extends BaseValue {
 		super(ValueType.Number);
 	}
 
-	__add__(a: NumberValue, b: BaseValue): BaseValue {
+	__add__(b: BaseValue): BaseValue {
 		// Caso o valor seja um número, retorna a soma dos dois valores
 		if (IS_NUMBER(b)) {
-			return NUMBER(a.value + AS_NUMBER(b));
+			return NUMBER(this.value + AS_NUMBER(b));
 		}
 
 		// Caso o valor seja uma string, retorna a concatenação dos dois valores
 		if (IS_STRING(b)) {
-			return STRING(a.value.toString() + AS_STRING(b).value);
+			return STRING(this.value.toString() + AS_STRING(b).value);
 		}
 
-		throw new Exceptions.UnsupportedOperationError(`Could't perform addition between ${a.valueType} and ${b.valueType}`);
+		throw new Exceptions.UnsupportedOperationError(`Could't perform addition between ${this.valueType} and ${b.valueType}`);
 	}
 
-	__sub__(a: NumberValue, b: BaseValue): BaseValue {
+	__sub__(b: BaseValue): BaseValue {
 		// Caso o valor seja um número, retorna a subtração dos dois valores
 		if (IS_NUMBER(b)) {
-			return NUMBER(a.value - AS_NUMBER(b));
+			return NUMBER(this.value - AS_NUMBER(b));
 		}
 
-		throw new Exceptions.UnsupportedOperationError(`Could't perform subtraction between ${a.valueType} and ${b.valueType}`);
+		throw new Exceptions.UnsupportedOperationError(`Could't perform subtraction between ${this.valueType} and ${b.valueType}`);
 	}
 
-	__mul__(a: NumberValue, b: BaseValue): BaseValue {
+	__mul__(b: BaseValue): BaseValue {
 		// Caso o valor seja um número, retorna a multiplicação dos dois valores
 		if (IS_NUMBER(b)) {
-			return NUMBER(a.value * AS_NUMBER(b));
+			return NUMBER(this.value * AS_NUMBER(b));
 		}
 
-		throw new Exceptions.UnsupportedOperationError(`Could't perform multiplication between ${a.valueType} and ${b.valueType}`);
+		throw new Exceptions.UnsupportedOperationError(`Could't perform multiplication between ${this.valueType} and ${b.valueType}`);
 	}
 
-	__div__(a: NumberValue, b: BaseValue): BaseValue {
+	__div__(b: BaseValue): BaseValue {
 		// Caso o valor seja um número, retorna a divisão dos dois valores
 		if (IS_NUMBER(b)) {
-			return NUMBER(a.value / AS_NUMBER(b));
+			return NUMBER(this.value / AS_NUMBER(b));
 		}
 
-		throw new Exceptions.UnsupportedOperationError(`Could't perform division between ${a.valueType} and ${b.valueType}`);
+		throw new Exceptions.UnsupportedOperationError(`Could't perform division between ${this.valueType} and ${b.valueType}`);
 	}
 
-	__mod__(a: NumberValue, b: BaseValue): BaseValue {
+	__mod__(b: BaseValue): BaseValue {
 		// Caso o valor seja um número, retorna o módulo dos dois valores
 		if (IS_NUMBER(b)) {
-			return NUMBER(a.value % AS_NUMBER(b));
+			return NUMBER(this.value % AS_NUMBER(b));
 		}
 
-		throw new Exceptions.UnsupportedOperationError(`Could't perform modulo between ${a.valueType} and ${b.valueType}`);
+		throw new Exceptions.UnsupportedOperationError(`Could't perform modulo between ${this.valueType} and ${b.valueType}`);
 	}
 
-	/* prettier-ignore */ __eq__(a: NumberValue, b: BaseValue): boolean { return IS_NUMBER(b) && a.value === AS_NUMBER(b); }
-	/* prettier-ignore */ __ne__(a: NumberValue, b: BaseValue): boolean { return IS_NUMBER(b) && a.value === AS_NUMBER(b); }
-	/* prettier-ignore */ __gt__(a: NumberValue, b: BaseValue): boolean { return IS_NUMBER(b) && a.value > AS_NUMBER(b); }
-	/* prettier-ignore */ __ge__(a: NumberValue, b: BaseValue): boolean { return IS_NUMBER(b) && a.value >= AS_NUMBER(b); }
-	/* prettier-ignore */ __lt__(a: NumberValue, b: BaseValue): boolean { return IS_NUMBER(b) && a.value < AS_NUMBER(b); }
-	/* prettier-ignore */ __le__(a: NumberValue, b: BaseValue): boolean { return IS_NUMBER(b) && a.value <= AS_NUMBER(b); }
+	/* prettier-ignore */ __eq__(b: BaseValue): boolean { return IS_NUMBER(b) && this.value === AS_NUMBER(b); }
+	/* prettier-ignore */ __ne__(b: BaseValue): boolean { return !IS_NUMBER(b) || this.value !== AS_NUMBER(b); }
+	/* prettier-ignore */ __gt__(b: BaseValue): boolean { return IS_NUMBER(b) && this.value > AS_NUMBER(b); }
+	/* prettier-ignore */ __ge__(b: BaseValue): boolean { return IS_NUMBER(b) && this.value >= AS_NUMBER(b); }
+	/* prettier-ignore */ __lt__(b: BaseValue): boolean { return IS_NUMBER(b) && this.value < AS_NUMBER(b); }
+	/* prettier-ignore */ __le__(b: BaseValue): boolean { return IS_NUMBER(b) && this.value <= AS_NUMBER(b); }
 
-	__not__(a: NumberValue): BaseValue {
-		return NUMBER(-a.value);
+	__not__(): BaseValue {
+		return NUMBER(-this.value);
 	}
 
 	toString(): string {
@@ -141,15 +141,15 @@ export class BooleanValue extends BaseValue {
 		super(ValueType.Boolean);
 	}
 
-	/* prettier-ignore */ __eq__(a: BooleanValue, b: BaseValue): boolean { return IS_BOOLEAN(b) && a.value === AS_BOOLEAN(b); }
-	/* prettier-ignore */ __ne__(a: BooleanValue, b: BaseValue): boolean { return IS_BOOLEAN(b) && a.value === AS_BOOLEAN(b); }
-	/* prettier-ignore */ __gt__(a: BooleanValue, b: BaseValue): boolean { return IS_BOOLEAN(b) && a.value > AS_BOOLEAN(b); }
-	/* prettier-ignore */ __ge__(a: BooleanValue, b: BaseValue): boolean { return IS_BOOLEAN(b) && a.value >= AS_BOOLEAN(b); }
-	/* prettier-ignore */ __lt__(a: BooleanValue, b: BaseValue): boolean { return IS_BOOLEAN(b) && a.value < AS_BOOLEAN(b); }
-	/* prettier-ignore */ __le__(a: BooleanValue, b: BaseValue): boolean { return IS_BOOLEAN(b) && a.value <= AS_BOOLEAN(b); }
+	/* prettier-ignore */ __eq__(b: BaseValue): boolean { return IS_BOOLEAN(b) && this.value === AS_BOOLEAN(b); }
+	/* prettier-ignore */ __ne__(b: BaseValue): boolean { return !IS_BOOLEAN(b) || this.value !== AS_BOOLEAN(b); }
+	/* prettier-ignore */ __gt__(b: BaseValue): boolean { return IS_BOOLEAN(b) && this.value > AS_BOOLEAN(b); }
+	/* prettier-ignore */ __ge__(b: BaseValue): boolean { return IS_BOOLEAN(b) && this.value >= AS_BOOLEAN(b); }
+	/* prettier-ignore */ __lt__(b: BaseValue): boolean { return IS_BOOLEAN(b) && this.value < AS_BOOLEAN(b); }
+	/* prettier-ignore */ __le__(b: BaseValue): boolean { return IS_BOOLEAN(b) && this.value <= AS_BOOLEAN(b); }
 
-	__not__(a: BooleanValue): BaseValue {
-		return BOOLEAN(!a.value);
+	__not__(): BaseValue {
+		return BOOLEAN(!this.value);
 	}
 
 	toString(): string {
@@ -180,9 +180,9 @@ export class ObjectValue extends BaseValue {
 	 * @param symbol
 	 * @param value
 	 */
-	__newIndex__(symbol: string, value: any): void {
-		if ("__newindex__" in this.__overrides__) {
-			this.__overrides__.__newindex__(symbol, value);
+	__new_index__(symbol: string, value: any): void {
+		if ("__new_index__" in this.__overrides__) {
+			this.__overrides__.__new_index__(symbol, value);
 		}
 	}
 }
@@ -192,26 +192,34 @@ export class StringObject extends ObjectValue {
 		super(ObjectType.String);
 	}
 
-	__add__(a: StringObject, b: BaseValue): BaseValue {
+	__add__(b: BaseValue): BaseValue {
 		// Caso o valor seja uma string, retorna a concatenação dos dois valores
 		if (IS_STRING(b)) {
-			return STRING(a.value + AS_STRING(b).value);
+			return STRING(this.value + AS_STRING(b).value);
 		}
 
 		// Caso o valor seja um número, retorna a concatenação dos dois valores
 		if (IS_NUMBER(b)) {
-			return STRING(a.value + AS_NUMBER(b).toString());
+			return STRING(this.value + AS_NUMBER(b).toString());
 		}
 
-		throw new Exceptions.UnsupportedOperationError(`Could't perform concatenation between ${a.valueType} and ${b.valueType}`);
+		throw new Exceptions.UnsupportedOperationError(`Could't perform concatenation between ${this.valueType} and ${b.valueType}`);
 	}
 
-	/* prettier-ignore */ __eq__(a: StringObject, b: BaseValue): boolean { return IS_STRING(b) && a.value === AS_STRING(b).value; }
-	/* prettier-ignore */ __ne__(a: StringObject, b: BaseValue): boolean { return IS_STRING(b) && a.value !== AS_STRING(b).value; }
-	/* prettier-ignore */ __gt__(a: StringObject, b: BaseValue): boolean { return IS_STRING(b) && a.value > AS_STRING(b).value; }
-	/* prettier-ignore */ __ge__(a: StringObject, b: BaseValue): boolean { return IS_STRING(b) && a.value >= AS_STRING(b).value; }
-	/* prettier-ignore */ __lt__(a: StringObject, b: BaseValue): boolean { return IS_STRING(b) && a.value < AS_STRING(b).value; }
-	/* prettier-ignore */ __le__(a: StringObject, b: BaseValue): boolean { return IS_STRING(b) && a.value <= AS_STRING(b).value; }
+	__mul__(b: BaseValue): BaseValue {
+		if (IS_NUMBER(b)) {
+			return STRING(this.value.repeat(AS_NUMBER(b)));
+		}
+
+		throw new Exceptions.UnsupportedOperationError(`Could't perform multiplication between ${this.valueType} and ${b.valueType}`);
+	}
+
+	/* prettier-ignore */ __eq__(b: BaseValue): boolean { return IS_STRING(b) && this.value === AS_STRING(b).value; }
+	/* prettier-ignore */ __ne__(b: BaseValue): boolean { return !IS_STRING(b) || this.value !== AS_STRING(b).value; }
+	/* prettier-ignore */ __gt__(b: BaseValue): boolean { return IS_STRING(b) && this.value > AS_STRING(b).value; }
+	/* prettier-ignore */ __ge__(b: BaseValue): boolean { return IS_STRING(b) && this.value >= AS_STRING(b).value; }
+	/* prettier-ignore */ __lt__(b: BaseValue): boolean { return IS_STRING(b) && this.value < AS_STRING(b).value; }
+	/* prettier-ignore */ __le__(b: BaseValue): boolean { return IS_STRING(b) && this.value <= AS_STRING(b).value; }
 
 	toString(): string {
 		return this.value;
@@ -222,7 +230,7 @@ export class ArrayObject extends ObjectValue implements Iterable<ArrayObject> {
 	constructor(entries: BaseValue[]) {
 		const __overrides__: { [key: string]: (...any: any) => any } = {
 			__index__: (index: number) => this.__get__(index),
-			__newindex__: (index: number, value: BaseValue) => this.__set__(index, value),
+			__new_index__: (index: number, value: BaseValue) => this.__set__(index, value),
 		};
 
 		super(
@@ -239,6 +247,28 @@ export class ArrayObject extends ObjectValue implements Iterable<ArrayObject> {
 				remove: new BuiltInCodeObject((index: number) => this.__properties__.__entries__.splice(index, 1)),
 
 				tamanho: new BuiltInCodeObject(() => NUMBER(this.__properties__.__entries__.length)),
+
+				procura: new BuiltInCodeObject((search: CodeObject) => {
+					const index = (this.__properties__.__entries__ as BaseValue[]).findIndex((entry, index) => {
+						return BOOLEAN(true).__eq__(search.compile(search, [NUMBER(index), entry]).next().value);
+					});
+
+					return index === -1 ? NULL() : NUMBER(index);
+				}),
+
+				mapeia: new BuiltInCodeObject((callback: CodeObject) => {
+					const entries = (this.__properties__.__entries__ as BaseValue[]).map((entry, index) => {
+						return callback.compile(callback, [NUMBER(index), entry]).next().value;
+					});
+
+					return ARRAY(entries);
+				}),
+
+				agrupar: new BuiltInCodeObject((separator: StringObject) => {
+					return STRING(this.__properties__.__entries__.join(separator.value));
+				}),
+
+				contem: new BuiltInCodeObject((value: BaseValue) => BOOLEAN(this.__properties__.__entries__.includes(value))),
 			},
 			__overrides__
 		);
@@ -292,7 +322,7 @@ export class DictionaryObject extends ObjectValue implements Iterable<Dictionary
 	constructor(entries: { [key: string]: BaseValue }) {
 		const __overrides__: { [key: string]: (...any: any) => any } = {
 			__index__: (key: string) => this.__get__(key),
-			__newindex__: (key: string, value: BaseValue) => this.__set__(key, value),
+			__new_index__: (key: string, value: BaseValue) => this.__set__(key, value),
 		};
 
 		super(
@@ -316,6 +346,8 @@ export class DictionaryObject extends ObjectValue implements Iterable<Dictionary
 				seta: new BuiltInCodeObject((key: string, value: BaseValue) => this.__set__(key, value)),
 
 				tamanho: new BuiltInCodeObject(() => NUMBER(Object.keys(this.__properties__.__entries__).length)),
+
+				contem: new BuiltInCodeObject((key: string) => BOOLEAN(key in this.__properties__.__entries__)),
 			},
 			__overrides__
 		);
@@ -378,6 +410,7 @@ export class DictionaryObject extends ObjectValue implements Iterable<Dictionary
 
 export class CodeObject extends ObjectValue {
 	constructor(
+		public readonly compile: (self: CodeObject, inputs: BaseValue[]) => Generator<void | BaseValue>,
 		public readonly name: string,
 		public readonly parameters: string[],
 		public readonly body: Nodes.NodeStmtTypeUnion[],

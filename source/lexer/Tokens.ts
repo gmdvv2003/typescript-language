@@ -99,14 +99,19 @@ export const KEYWORDS: { [key: string]: TokenType } = {
 
 	[TokenType.Each.toString()]: TokenType.Each,
 	[TokenType.In.toString()]: TokenType.In,
-	
+
 	[TokenType.Not.toString()]: TokenType.Not,
 
 	[TokenType.Null.toString()]: TokenType.Null,
 };
 
 export class Token {
-	constructor(public readonly type: TokenType, public readonly word: string, public readonly line: number, public readonly column: number) {}
+	constructor(
+		public readonly type: TokenType,
+		public readonly word: string,
+		public readonly line: number,
+		public readonly column: number
+	) {}
 
 	/**
 	 *

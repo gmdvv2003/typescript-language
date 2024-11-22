@@ -2,8 +2,18 @@ import * as Context from "../../compiler/Context";
 import * as Value from "../../compiler/Value";
 
 class __Math {
-	static PI = Value.NUMBER(3.14159265358979323846);
-	static TAU = Value.NUMBER(6.28318530717958647693);
+	static readonly PI = Value.NUMBER(3.14159265358979323846);
+	static readonly TAU = Value.NUMBER(6.28318530717958647693);
+
+	/**
+	 * 
+	 * @param _ 
+	 * @param value 
+	 * @returns 
+	 */
+	static absoluto(_: Context.Context, value: Value.NumberValue): Value.NumberValue {
+		return Value.NUMBER(Math.abs(value.value));
+	}
 
 	/**
 	 *
@@ -43,6 +53,37 @@ class __Math {
 	 */
 	static raiz(_: Context.Context, value: Value.NumberValue): Value.NumberValue {
 		return Value.NUMBER(Math.sqrt(value.value));
+	}
+
+	/**
+	 *
+	 * @param _
+	 * @param value
+	 * @returns
+	 */
+	static teto(_: Context.Context, value: Value.NumberValue): Value.NumberValue {
+		return Value.NUMBER(Math.ceil(value.value));
+	}
+
+	/**
+	 *
+	 * @param _
+	 * @param value
+	 * @returns
+	 */
+	static chao(_: Context.Context, value: Value.NumberValue): Value.NumberValue {
+		return Value.NUMBER(Math.floor(value.value));
+	}
+
+	/**
+	 * 
+	 * @param _ 
+	 * @param min 
+	 * @param max 
+	 * @returns 
+	 */
+	static aleatorio(_: Context.Context, min: Value.NumberValue, max: Value.NumberValue): Value.NumberValue {
+		return Value.NUMBER(Math.random() * (max.value - min.value) + min.value);
 	}
 }
 

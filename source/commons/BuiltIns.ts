@@ -1,8 +1,9 @@
 import * as Value from "../compiler/Value";
 import * as Context from "../compiler/Context";
 
-import { __Log as Log } from "./packages/Log";
+import { __Console as Console } from "./packages/Console";
 import { __Math as Math } from "./packages/Math";
+import { __Sleep as Sleep } from "./packages/Sleep";
 
 interface BuiltInFunction {
 	(context: Context.Context, ...any: any[]): any;
@@ -29,22 +30,35 @@ class BuiltIns {
 	public load(): { [key: string]: Value.BaseValue } {
 		return {
 			// ===== Math ===== //
-			Math: Value.DICTIONARY({
+			math: Value.DICTIONARY({
 				PI: Math.PI,
 				TAU: Math.TAU,
 
-				Seno: this.wrapInternal(Math.seno),
-				Cosseno: this.wrapInternal(Math.cosseno),
-				Tangente: this.wrapInternal(Math.tangente),
+				absoluto: this.wrapInternal(Math.absoluto),
 
-				Potencia: this.wrapInternal(Math.potencia),
-				Raiz: this.wrapInternal(Math.raiz),
+				seno: this.wrapInternal(Math.seno),
+				cosseno: this.wrapInternal(Math.cosseno),
+				tangente: this.wrapInternal(Math.tangente),
+
+				potencia: this.wrapInternal(Math.potencia),
+				raiz: this.wrapInternal(Math.raiz),
+
+				teto: this.wrapInternal(Math.teto),
+				chao: this.wrapInternal(Math.chao),
+
+				aleatorio: this.wrapInternal(Math.aleatorio),
 			}),
 
-			// ===== Log ===== //
-			Log: Value.DICTIONARY({
-				Escreva: this.wrapInternal(Log.escreva),
-				Leia: this.wrapInternal(Log.leia),
+			// ===== Console ===== //
+			console: Value.DICTIONARY({
+				escreva: this.wrapInternal(Console.escreva),
+				leia: this.wrapInternal(Console.leia),
+				limpa: this.wrapInternal(Console.limpa),
+			}),
+
+			// ===== Sleep ===== //
+			sleep: Value.DICTIONARY({
+				aguarde: this.wrapInternal(Sleep.aguarde),
 			}),
 		};
 	}

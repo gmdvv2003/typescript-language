@@ -2,15 +2,15 @@ import * as Context from "../../compiler/Context";
 import * as Value from "../../compiler/Value";
 
 import { runLoopOnce } from "deasync";
-import { createInterface } from "node:readline";
+import { createInterface } from "readline";
 
-class __Log {
+class __Console {
 	/**
 	 *
 	 * @param parameters
 	 */
 	static escreva(_: Context.Context, ...parameters: Value.BaseValue[]): void {
-		console.log(parameters.map((parameter) => parameter.toString()).join(" "));
+		process.stdout.write(parameters.map((parameter) => parameter.toString()).join(" ") + "\n");
 	}
 
 	/**
@@ -40,6 +40,14 @@ class __Log {
 
 		return Value.STRING(result);
 	}
+
+	/**
+	 * 
+	 * @param _ 
+	 */
+	static limpa(_: Context.Context): void {
+		process.stdout.write("\x1Bc");
+	}
 }
 
-export { __Log };
+export { __Console };

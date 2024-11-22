@@ -2,7 +2,6 @@ import * as process from "process";
 import * as fileSystem from "fs";
 
 import { Compiler } from "./source/compiler/Compiler";
-import { Debugger } from "./source/debugger/Debugger";
 import { Lexer } from "./source/lexer/Lexer";
 import { Parser } from "./source/parser/Parser";
 
@@ -23,11 +22,9 @@ try {
 	const lexer = new Lexer(source).lex();
 	const parser = new Parser(lexer).parse();
 
-	if (processArguments.includes("--debug")) {
-		new Debugger(new Compiler(parser));
-	} else {
-		new Compiler(parser).execute();
-	}
+	console.log(parser);
+
+	new Compiler(parser).execute();
 } catch (error) {
 	console.error((<Error>error).stack);
 }
