@@ -1,4 +1,3 @@
 bloco
-	declarar x = Log.Leia("Digite seu nome:")
-	Log.Escreva(x)
+	console.escreva("Hello World!")
 fim

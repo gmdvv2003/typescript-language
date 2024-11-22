@@ -22,8 +22,6 @@ try {
 	const lexer = new Lexer(source).lex();
 	const parser = new Parser(lexer).parse();
 
-	console.log(parser);
-
 	new Compiler(parser).execute();
 } catch (error) {
 	console.error((<Error>error).stack);
